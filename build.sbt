@@ -83,5 +83,8 @@ import de.heikoseeberger.sbtheader.HeaderPattern
 import de.heikoseeberger.sbtheader.license.Apache2_0
 lazy val headerSettings =
   Seq(
-    headers := Map("scala" -> Apache2_0("2017", "Vitor S. Vieira"))
+    headers := Map(
+      "scala" -> Apache2_0("2017", "Vitor S. Vieira"),
+      "conf" -> Apache2_0("2017", "Vitor S. Vieira", "#")
+    )
   )

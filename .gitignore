@@ -16,7 +16,7 @@ target
 .worksheet
 
 # IntelliJ
-.idea
+.idea/
 
 # ENSIME
 .ensime
