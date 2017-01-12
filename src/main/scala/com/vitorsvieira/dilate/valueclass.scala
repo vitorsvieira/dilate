@@ -22,7 +22,7 @@ import scala.meta._
 import scala.util.Try
 
 
-class typed extends StaticAnnotation {
+class valueclass extends StaticAnnotation {
   inline def apply(defn: Any): Any = meta {
     defn match {
       // match class with a companion object, class first then the companion

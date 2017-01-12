@@ -17,9 +17,6 @@
 package com.vitorsvieira
 
 import scala.annotation.StaticAnnotation
-import scala.collection.immutable.Seq
-import scala.util.Try
-import scala.meta._
 
 package object dilate {
 

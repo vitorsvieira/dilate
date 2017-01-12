@@ -20,17 +20,15 @@ object Examples extends App {
 
   //  @typed class P1(age: Int)
   //  @typed sealed class P2(age: Int)
-
   object BankAccount {
-    //    implicit def toNumber(number: BigInt): BankAccount.Number = BankAccount.Number(number)
-    //    implicit def toAge(age: Int): BankAccount.Age = BankAccount.Age(age)
-    //    implicit def toFunds(funds: BigDecimal): BankAccount.Funds = BankAccount.Funds(funds)
-    //    implicit def toToken(uuid: UUID): BankAccount.Token = BankAccount.Token(uuid)
-
     def renew(account: BankAccount) = account.copy(token = java.util.UUID.randomUUID())
   }
-  @typed case class BankAccount(number: BigInt, age: Int, funds: BigDecimal, token: java.util.UUID)
-
+  @valueclass case class BankAccount(
+    number: BigInt = 10,
+    funds: BigDecimal,
+    withdrawals: Seq[BigDecimal],
+    token: java.util.UUID
+  )
   //  @typed private class P4(age: Int)
   //  @typed protected class P3(age: Int)
   //  @typed class P1(i: Boolean)
