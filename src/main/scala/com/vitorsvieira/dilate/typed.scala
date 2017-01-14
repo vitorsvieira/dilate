@@ -22,10 +22,9 @@ import scala.meta._
 import scala.util.Try
 
 
-class valueclass extends StaticAnnotation {
+class typed extends StaticAnnotation {
   inline def apply(defn: Any): Any = meta {
     defn match {
-      // match class with a companion object, class first then the companion
       case Term.Block(Seq(cls@Defn.Class(_, name, _, ctor, _), companion: Defn.Object)) ⇒
         val result       = Dilate.extract(name, ctor.paramss)
         val newClass: Defn.Class = cls.copy(
@@ -43,28 +42,8 @@ class valueclass extends StaticAnnotation {
 
         println(s"\n$newClass\n$newCompanion\n")
         Term.Block(Seq(newClass,newCompanion))
-
-      // match class with a companion object, companion first then class
-//      case Term.Block(Seq(companion: Defn.Object, cls@Defn.Class(_, name, _, ctor, _))) ⇒
-//        val result       = Dilate.extract(name, ctor.paramss)
-//        val newClass: Defn.Class = cls.copy(
-//          ctor = Ctor.Primary.apply(ctor.mods, ctor.name, result.domain.finalArgs)
-//        )
-//
-//        val templateStats: Option[Seq[Stat]] = Try(
-//          result.template.valueclasses ++:
-//            result.template.implicitDefs ++:
-//            companion.templ.stats.getOrElse(Nil)
-//        ).toOption
-//
-//        val newCompanion: Defn.Object =
-//          companion.copy(templ = companion.templ.copy(stats = templateStats))
-//
-//        println(s"\n$newClass\n$newCompanion\n")
-//        Term.Block(Seq(newCompanion, newClass))
-      // match class without a companion object
       case cls@Defn.Class(_, name, _, ctor, _)                                          ⇒
-        val result: DilateResult = Dilate.extract(name, ctor.paramss)
+        val result: ExtractionResult = Dilate.extract(name, ctor.paramss)
         val newClass: Defn.Class = cls.copy(
           ctor = Ctor.Primary.apply(ctor.mods, ctor.name, result.domain.finalArgs)
         )
@@ -79,7 +58,7 @@ class valueclass extends StaticAnnotation {
         Term.Block(Seq(newClass, newCompanion))
       case _ ⇒
         println(defn.structure)
-        abort("@valueclass must annotate a class.")
+        abort("@typed must annotate a class.")
     }
   }
 }

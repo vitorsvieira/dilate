@@ -16,32 +16,13 @@
 
 package com.vitorsvieira.dilate
 
-import org.scalatest._
-
-
-@typed class ClassWithoutCompanion(age: Int)
-
-//object ClassWithCompanionObject {
-//  private val whatever: Int = 10
-//  def myMethod(x: Int) = this.Age(1)
-//}
-//@valueclass class ClassWithCompanionObject(age: Int)
-
-
-class TypedSpec extends FlatSpec with Matchers {
-
-//  "a class with @valueclass annotation" should {
+import scala.annotation.StaticAnnotation
+import scala.meta._
 //
-//    "have a companion object created by the macro with" should {
-//
-//    }
-//
-//    "have accessible type(s)/valueclass(es) inside the companion object" should{
-//
-//    }
-//
-//    "have implicit conversion for each type/valueclass" should{
+//class unboxed extends StaticAnnotation {
+//  inline def apply(defn: Any): Any = meta {
+//    defn match {
 //
 //    }
 //  }
-}
+//}

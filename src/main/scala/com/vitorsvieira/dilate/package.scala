@@ -20,14 +20,23 @@ import scala.annotation.StaticAnnotation
 
 package object dilate {
 
-  //  sealed trait ValueClassParamAnnotation extends StaticAnnotation
+  //More information about Unboxed Tagged Types in the Readme.
+  // Unboxed newtypes, credit to @milessabin and @retronym
+  type Tagged[U] = { type Tag = U }
+  type @@[T, U] = T with Tagged[U]
+
+  class Tagger[U] { def apply[T](t: T): T @@ U = t.asInstanceOf[T @@ U] }
+  def tag[U] = new Tagger[U]
+
+  sealed trait ClassParamAnnotation extends StaticAnnotation
   //  sealed trait ManipulateParamAnnotation extends StaticAnnotation
   //  sealed trait NumericValidationAnnotation extends StaticAnnotation
   //  sealed trait StringValidationAnnotation extends StaticAnnotation
   //  sealed trait OptionValidationAnnotation extends StaticAnnotation
   //  sealed trait CollectionValidationAnnotation extends StaticAnnotation
   //
-  //  final class skip extends ValueClassParamAnnotation
+  final class hold extends ClassParamAnnotation
+
   //  final class camelCase extends ValueClassParamAnnotation
   //  final class nonEmpty extends ValueClassParamAnnotation
   //  final class min extends ValueClassParamAnnotation
@@ -46,7 +55,14 @@ package object dilate {
   //  final class aes extends ManipulateParamAnnotation
   //  final class des extends ManipulateParamAnnotation
   //  final class blowfish extends ManipulateParamAnnotation
-
+  //
+  // val convertFromValueClass: Option[Defn.Def] =
+  //    buildDef(
+  //      methodName = s"to${param.decltpe.get.syntax}",
+  //      argType = Option.apply(Type.Name.apply(s"${name.capitalize}")),
+  //      decltpe = Option.apply(Type.Name(param.decltpe.get.syntax)),
+  //      body = Term.Name(s"$name.self")
+  //    )
   //class positive extends StaticAnnotation {
   //  inline def apply(defn: Any): Any = meta {
   //

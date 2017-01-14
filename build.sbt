@@ -2,6 +2,8 @@ import sbt._
 import Keys._
 import de.heikoseeberger.sbtheader.HeaderPattern
 import de.heikoseeberger.sbtheader.license.Apache2_0
+import scalariform.formatter.preferences._
+import com.typesafe.sbt.SbtScalariform
 import sbtrelease._
 import ReleaseTransformations._
 import sbtrelease.ReleasePlugin._
@@ -56,7 +58,6 @@ lazy val library =
 
 lazy val settings =
   commonSettings ++
-  scalafmtSettings ++
   gitSettings ++
   headerSettings
 
@@ -110,22 +111,25 @@ lazy val commonSettings =
     // annotations and a dependency on macro paradise 2.x.
     addCompilerPlugin(
       "org.scalameta" % "paradise" % "3.0.0-beta4" cross CrossVersion.full),
-    scalacOptions += "-Xplugin-require:macroparadise"
+    scalacOptions += "-Xplugin-require:macroparadise",
     // temporary workaround for https://github.com/scalameta/paradise/issues/10
-    //scalacOptions in (Compile, console) := Seq(), // macroparadise plugin doesn't work in repl yet.
+    scalacOptions in (Compile, console) := Seq(), // macroparadise plugin doesn't work in repl yet.
     // temporary workaround for https://github.com/scalameta/paradise/issues/55
-    //sources in (Compile, doc) := Nil // macroparadise doesn't work with scaladoc yet.
-)
+    sources in (Compile, doc) := Nil, // macroparadise doesn't work with scaladoc yet.
 
-lazy val scalafmtSettings =
-  reformatOnCompileSettings ++
-  Seq(
-    formatSbtFiles := false,
-    scalafmtConfig :=
-      Some(baseDirectory.in(ThisBuild).value / ".scalafmt.conf"),
-    ivyScala :=
-      ivyScala.value.map(_.copy(overrideScalaVersion = sbtPlugin.value))
-  )
+    SbtScalariform.autoImport.scalariformPreferences := SbtScalariform.autoImport.scalariformPreferences.value
+        .setPreference(AlignSingleLineCaseStatements, true)
+        .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, 100)
+        .setPreference(DoubleIndentClassDeclaration, true)
+        .setPreference(RewriteArrowSymbols, true)
+        .setPreference(AlignParameters, true)
+        .setPreference(AlignArguments, true)
+        .setPreference(DoubleIndentClassDeclaration, true)
+        .setPreference(DanglingCloseParenthesis, Preserve)
+        .setPreference(SpacesAroundMultiImports, false),
+
+      wartremoverWarnings ++= Warts.unsafe
+)
 
 lazy val gitSettings =
   Seq(

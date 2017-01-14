@@ -18,18 +18,48 @@ package com.vitorsvieira.dilate
 
 object Examples extends App {
 
-  //  @typed class P1(age: Int)
-  //  @typed sealed class P2(age: Int)
-  object BankAccount {
-    def renew(account: BankAccount) = account.copy(token = java.util.UUID.randomUUID())
-  }
-  @valueclass case class BankAccount(
-    number: BigInt = 10,
-    funds: BigDecimal,
-    withdrawals: Seq[BigDecimal],
-    token: java.util.UUID
+  case class Age(value: Int) extends AnyVal
+
+  @typed sealed class P2(
+    v1:       Boolean,
+    @hold v2: Age     = Age(1),
+    v3:       Int     = 1,
+    v4:       Int
   )
-  //  @typed private class P4(age: Int)
+
+
+  object Scoring{
+    trait Design
+    trait Usability
+    trait Durability
+
+    type DesignScore = Int @@ Design
+    type UsabilityScore = Int @@ Usability
+    type DurabilityScore = Int @@ Durability
+
+    implicit class TaggedInt(val i: Int) extends AnyVal {
+      implicit def design:DesignScore = i.asInstanceOf[DesignScore]
+      implicit def usability:UsabilityScore = i.asInstanceOf[UsabilityScore]
+      implicit def durability:DurabilityScore = i.asInstanceOf[DurabilityScore]
+    }
+  }
+  case class Scoring(design: Scoring.DesignScore,
+                     usability: Scoring.UsabilityScore,
+                     durability: Scoring.DurabilityScore)
+  import Scoring._
+
+  val sc1 = Scoring(1.design, 1.usability, 1.durability)
+
+  //  object BankAccount {
+  //    def renew(account: BankAccount) = account.copy(token = java.util.UUID.randomUUID())
+  //  }
+  //  @typed case class BankAccount(
+  //    number:      BigInt          = 10,
+  //    funds:       BigDecimal,
+  //    withdrawals: Seq[BigDecimal],
+  //    token:       java.util.UUID
+  //  )
+
   //  @typed protected class P3(age: Int)
   //  @typed class P1(i: Boolean)
   //  @typed case class P3(age: P1)
