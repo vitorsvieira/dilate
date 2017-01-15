@@ -20,54 +20,76 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scala.util.Try
 
-final private[dilate] case class ExtractionResult(template: CompanionObjectTemplate, domain: OwnerClassArgs)
-
-final private[dilate] case class CompanionObjectTemplate(
-  valueclasses: Seq[Defn.Class],
-  implicitDefs: Seq[Defn.Def]
-)
-
-final private[dilate] case class OwnerClassArgs(finalArgs: Seq[Seq[Term.Param]] = Seq.empty)
-
-final private[dilate] case class OwnerClassArgsSplitted(
-  nonImplicitArgs: Seq[Term.Param],
-  implicitArgs:    Seq[Term.Param]
-)
-
-final private[dilate] case class Extraction(
-  newArgs:     Term.Param,
-  valueclass:  Option[Defn.Class],
-  implicitDef: Seq[Option[Defn.Def]]
-)
-
 object Dilate {
 
+  sealed trait Domain extends Product with Serializable
+  final case object NewType extends Domain
+  final case object ValueClass extends Domain
   /*
    * receives owner class name and its parameter lists
    *  - extract valueclasses based on the parameters,
    *  - insert the valueclasses into the companion object
    *  - update the owner class with the new parameters based on the valueclasses
    */
-  private[dilate] def extract(ownerClassName: Type.Name, params: Seq[Seq[Term.Param]]): ExtractionResult = {
+  private[dilate] def valueclassApply(
+    ownerClassName: Type.Name,
+    params:         Seq[Seq[Term.Param]]
+  ): ExtractionResult = {
+
+    implicit val domain: Domain = ValueClass
+
+    val result = parseArgs(ownerClassName, params)
+
+    // valueclasses to be inserted into the companion object
+    val companionObjectTemplate = CompanionObjectTemplate(
+      valueclasses = result.extraction.flatMap(_.valueclass),
+      implicitDefs = result.extraction.flatMap(_.implicitDef).flatten
+    )
+
+    ExtractionResult(template = companionObjectTemplate, domain = result.newArgs)
+  }
+
+  /*
+   * TODO
+   * UPDATE THIS COMMENT
+   */
+  private[dilate] def newtypeApply(
+    ownerClassName: Type.Name,
+    params:         Seq[Seq[Term.Param]]
+  ): ExtractionResult = {
+
+    implicit val domain: Domain = NewType
+
+    val result = parseArgs(ownerClassName, params)
+
+    // traits, types, implicit classes to be inserted into the companion object
+    val companionObjectTemplate = CompanionObjectTemplate(
+      traits          = result.extraction.flatMap(_.traitT),
+      types           = result.extraction.flatMap(_.typeT),
+      implicitClasses = result.extraction.flatMap(_.implicitClass)
+    )
+
+    ExtractionResult(template = companionObjectTemplate, domain = result.newArgs)
+  }
+
+  /*
+   * TODO
+   * UPDATE THIS COMMENT
+   */
+  private[this] def parseArgs(ownerClassName: Type.Name, params: Seq[Seq[Term.Param]])(implicit domain: Domain) = {
+
     // return args separated between implicit and non-implicit, not modified.
     val splittedArgs: OwnerClassArgsSplitted = partitionArgs(params)
 
-    // return new args to be used in the owner class and valueclasses
-    val extraction: Seq[Extraction] =
-      extractValueClasses(ownerClassName, splittedArgs.nonImplicitArgs)
+    // return new args to be used in the owner class and companion object
+    val extraction: Seq[Extraction] = extractArgs(ownerClassName, splittedArgs.nonImplicitArgs)
 
     // new arguments and the implicit args
     val newArgs: OwnerClassArgs = OwnerClassArgs(
       Seq(extraction.map(_.newArgs), splittedArgs.implicitArgs).filter(_.nonEmpty)
     )
 
-    // valueclasses to be inserted into the companion object
-    val companionObjectTemplate = CompanionObjectTemplate(
-      valueclasses = extraction.flatMap(_.valueclass),
-      implicitDefs = extraction.flatMap(_.implicitDef).flatten
-    )
-
-    ExtractionResult(template = companionObjectTemplate, domain = newArgs)
+    ExtractionPreResult(extraction, newArgs)
   }
 
   /* Splits Ctor.Primary params(class arguments) between implicits and non-implicits */
@@ -79,61 +101,65 @@ object Dilate {
     OwnerClassArgsSplitted(p._1, p._2)
   }
 
-  /* */
-  private[this] def extractValueClasses(
+  /*
+   * TODO
+   * UPDATE THIS COMMENT
+   */
+  private[this] def extractArgs(
     ownerClassName: Type.Name,
     params:         Seq[Term.Param]
-  ): Seq[Extraction] =
+  )(implicit domain: Domain): Seq[Extraction] =
     params.map { implicit param: Term.Param ⇒
       //debugParam(param) //DEBUG
       param.decltpe match {
         // match A.B
         case Some(quasi @ Type.Select(Term.Name(_), Type.Name(_))) ⇒
           Extraction(
-            newArgs     = Term.Param(
+            newArgs = Term.Param(
               param.mods,
               Term.Name(param.name.value),
               Option.apply(quasi),
               param.default
-            ),
-            valueclass  = None,
-            implicitDef = Seq(None)
+            )
           )
 
         // Match a.F[_*], a.b.F[_*], a.b..z.F[_*]
         case Some(quasi @ Type.Apply(Type.Select(namespace, Type.Name(name: String)), Seq(_*))) ⇒
           val path = getPath(s"${namespace.syntax}.$name", quasi.args.map(_.toString()))
-          returnExtraction(ownerClassName, path)
+          extraction(ownerClassName, path)
 
         // Match F[_*]
         case Some(quasi @ Type.Apply(Type.Name(name: String), Seq(_*))) ⇒
           val path = getPath(name, quasi.args.map(_.toString()))
-          returnExtraction(ownerClassName, path)
+          extraction(ownerClassName, path)
 
         // Match tuple syntactic sugar (_), (_, _), (_, _, ...)
         case Some(quasi @ Type.Tuple(Seq(_*))) ⇒
           val path = getPath(s"Tuple${quasi.args.length}", quasi.args.map(_.toString()))
-          returnExtraction(ownerClassName, path)
+          extraction(ownerClassName, path)
 
         case _ ⇒
-          returnExtraction(ownerClassName, param.decltpe.fold("Any")(_.syntax))
+          extraction(ownerClassName, param.decltpe.fold("Any")(_.syntax))
       }
     }
 
   /* Hold args types with @hold annotation in the owner class*/
-  private[this] def returnExtraction(ownerClassName: Type.Name, path: String)(implicit param: Term.Param) =
-    param match {
-      case Term.Param(mods, _, _, _) if mods.exists(m ⇒ m.syntax == "@hold") ⇒
-        Extraction(
-          newArgs     = param.copy(mods = param.mods.filter(m ⇒ m.syntax != "@hold")),
-          valueclass  = None,
-          implicitDef = Seq(None)
-        )
-      case _ ⇒
+  private[this] def extraction(ownerClassName: Type.Name, path: String)(implicit domain: Domain, param: Term.Param) =
+    (param, domain) match {
+      case (Term.Param(mods, _, _, _), _) if mods.exists(m ⇒ m.syntax == "@hold") ⇒
+        Extraction(newArgs = param.copy(mods = param.mods.filter(m ⇒ m.syntax != "@hold")))
+      case (_, ValueClass) ⇒
         Extraction(
           newArgs     = buildOwnerClassArgs(ownerClassName),
           valueclass  = buildValueClass(Type.Name(path)),
           implicitDef = buildImplicitDef(ownerClassName)
+        )
+      case (_, NewType) ⇒
+        Extraction(
+          newArgs       = buildOwnerClassArgs(ownerClassName),
+          traitT        = buildTrait(ownerClassName),
+          typeT         = buildType(ownerClassName),
+          implicitClass = None //buildImplicitClass(ownerClassName)
         )
     }
 
@@ -149,12 +175,12 @@ object Dilate {
     )
 
   /* build value class */
-  private[this] def buildValueClass(typeArg: Type.Name)(implicit param: Term.Param): Option[Defn.Class] = {
+  private[this] def buildValueClass(typeName: Type.Name)(implicit param: Term.Param): Option[Defn.Class] = {
 
     val valueClassTerm: Term.Param = Term.Param.apply(
       mods    = Seq.empty,
       name    = Term.Name("self"),
-      decltpe = Option.apply(typeArg),
+      decltpe = Option.apply(typeName),
       default = None
     )
     Try(q"""${Mod.Final.apply()} ${Mod.Case.apply()} class ${
@@ -162,9 +188,11 @@ object Dilate {
     }($valueClassTerm) extends AnyVal""").toOption
   }
 
-  private[this] def buildImplicitDef(
-    typeName: Type.Name
-  )(implicit param: Term.Param): Seq[Option[Defn.Def]] = {
+  /*
+   * TODO
+   * UPDATE THIS COMMENT
+   */
+  private[this] def buildImplicitDef(typeName: Type.Name)(implicit param: Term.Param): Seq[Option[Defn.Def]] = {
 
     val name = param.name.value
     val path = s"$typeName.${name.capitalize}"
@@ -213,6 +241,24 @@ object Dilate {
 
     Seq(toValueClass, fromValueClass)
   }
+
+  /*
+   * TODO
+   * UPDATE THIS COMMENT
+   */
+  private[this] def buildTrait(typeName: Type.Name)(implicit param: Term.Param): Option[Defn.Trait] = ???
+
+  /*
+   * TODO
+   * UPDATE THIS COMMENT
+   */
+  private[this] def buildType(typeName: Type.Name)(implicit param: Term.Param): Option[Defn.Type] = ???
+
+  /*
+   * TODO
+   * UPDATE THIS COMMENT
+   */
+  //private[this] def buildImplicitClass(typeName: Type.Name)(implicit param: Term.Param): Option[Defn.Class] = ???
 
   /* return opinionated F[_] path */
   private[this] def getPath(f: String, args: Seq[String]) = f match {

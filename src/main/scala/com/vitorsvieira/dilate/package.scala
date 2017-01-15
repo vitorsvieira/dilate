@@ -25,9 +25,6 @@ package object dilate {
   type Tagged[U] = { type Tag = U }
   type @@[T, U] = T with Tagged[U]
 
-  class Tagger[U] { def apply[T](t: T): T @@ U = t.asInstanceOf[T @@ U] }
-  def tag[U] = new Tagger[U]
-
   sealed trait ClassParamAnnotation extends StaticAnnotation
   //  sealed trait ManipulateParamAnnotation extends StaticAnnotation
   //  sealed trait NumericValidationAnnotation extends StaticAnnotation

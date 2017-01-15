@@ -18,17 +18,17 @@ package com.vitorsvieira.dilate
 
 object Examples extends App {
 
-  case class Age(value: Int) extends AnyVal
+  //@valueclass case class P1var(var age: Seq[Int])
 
-  @typed sealed class P2(
+  case class Age(value: Int) extends AnyVal
+  @valueclass sealed class P2(
     v1:       Boolean,
     @hold v2: Age     = Age(1),
     v3:       Int     = 1,
     v4:       Int
   )
 
-
-  object Scoring{
+  object Scoring {
     trait Design
     trait Usability
     trait Durability
@@ -38,17 +38,24 @@ object Examples extends App {
     type DurabilityScore = Int @@ Durability
 
     implicit class TaggedInt(val i: Int) extends AnyVal {
-      implicit def design:DesignScore = i.asInstanceOf[DesignScore]
-      implicit def usability:UsabilityScore = i.asInstanceOf[UsabilityScore]
-      implicit def durability:DurabilityScore = i.asInstanceOf[DurabilityScore]
+      def design: DesignScore = i.asInstanceOf[DesignScore]
+      def usability: UsabilityScore = i.asInstanceOf[UsabilityScore]
+      def durability: DurabilityScore = i.asInstanceOf[DurabilityScore]
     }
   }
-  case class Scoring(design: Scoring.DesignScore,
-                     usability: Scoring.UsabilityScore,
-                     durability: Scoring.DurabilityScore)
+  case class Scoring(
+      design:     Scoring.DesignScore,
+      usability:  Scoring.UsabilityScore,
+      durability: Scoring.DurabilityScore) {
+
+    def sum = design + usability + durability
+  }
   import Scoring._
 
   val sc1 = Scoring(1.design, 1.usability, 1.durability)
+  println(sc1.sum)
+
+  //@newtype class Scoring2(ratingScore: Int, creditScore: Int)
 
   //  object BankAccount {
   //    def renew(account: BankAccount) = account.copy(token = java.util.UUID.randomUUID())

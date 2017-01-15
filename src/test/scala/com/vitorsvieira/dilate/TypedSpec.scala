@@ -19,7 +19,7 @@ package com.vitorsvieira.dilate
 import org.scalatest._
 
 
-@typed class ClassWithoutCompanion(age: Int)
+//@valueclass class ClassWithoutCompanion(age: Int)
 
 //object ClassWithCompanionObject {
 //  private val whatever: Int = 10

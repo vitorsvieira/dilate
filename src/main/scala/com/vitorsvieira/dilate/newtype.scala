@@ -21,44 +21,44 @@ import scala.collection.immutable.Seq
 import scala.meta._
 import scala.util.Try
 
-
-class typed extends StaticAnnotation {
+class newtype extends StaticAnnotation {
   inline def apply(defn: Any): Any = meta {
     defn match {
       case Term.Block(Seq(cls@Defn.Class(_, name, _, ctor, _), companion: Defn.Object)) ⇒
-        val result       = Dilate.extract(name, ctor.paramss)
+        val result       = Dilate.newtypeApply(name, ctor.paramss)
         val newClass: Defn.Class = cls.copy(
           ctor = Ctor.Primary.apply(ctor.mods, ctor.name, result.domain.finalArgs)
         )
 
         val templateStats: Option[Seq[Stat]] = Try(
           result.template.valueclasses ++:
-            result.template.implicitDefs ++:
-            companion.templ.stats.getOrElse(Nil)
+          result.template.implicitDefs ++:
+          companion.templ.stats.getOrElse(Nil)
         ).toOption
 
-        val newCompanion: Defn.Object =
-          companion.copy(templ = companion.templ.copy(stats = templateStats))
+        val newCompanion: Defn.Object = companion.copy(templ = companion.templ.copy(stats = templateStats))
 
         println(s"\n$newClass\n$newCompanion\n")
-        Term.Block(Seq(newClass,newCompanion))
+        Term.Block(Seq(newClass, newCompanion))
+
       case cls@Defn.Class(_, name, _, ctor, _)                                          ⇒
-        val result: ExtractionResult = Dilate.extract(name, ctor.paramss)
+        val result: ExtractionResult = Dilate.newtypeApply(name, ctor.paramss)
         val newClass: Defn.Class = cls.copy(
           ctor = Ctor.Primary.apply(ctor.mods, ctor.name, result.domain.finalArgs)
         )
 
         val newCompanion: Defn.Object =
           q"""object ${Term.Name(name.value)} {
-            ..${result.template.valueclasses}
-            ..${result.template.implicitDefs}
+            ..${result.template.traits}
+            ..${result.template.types}
+            ..${result.template.implicitClasses}
           }"""
 
         println(s"\n$newClass\n$newCompanion\n")
         Term.Block(Seq(newClass, newCompanion))
       case _ ⇒
         println(defn.structure)
-        abort("@typed must annotate a class.")
+        abort("@newtype must annotate a class.")
     }
   }
 }
