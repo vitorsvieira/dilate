@@ -47,7 +47,7 @@ object Examples extends App {
    */
   import BankAccount2._
   @newtype case class BankAccount2(
-    activated:     Boolean         = true.activated,
+    activated:     Boolean         = true,
     number:        BigInt,
     funds:         BigDecimal,
     withdrawals:   Seq[BigDecimal],
