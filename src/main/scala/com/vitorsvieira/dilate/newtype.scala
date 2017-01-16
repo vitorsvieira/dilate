@@ -16,32 +16,32 @@
 
 package com.vitorsvieira.dilate
 
-import scala.annotation.StaticAnnotation
+import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.collection.immutable.Seq
 import scala.meta._
 import scala.util.Try
 
-class newtype extends StaticAnnotation {
+@compileTimeOnly("@newtype macro expands only in compile time.")
+final class newtype extends StaticAnnotation {
   inline def apply(defn: Any): Any = meta {
     defn match {
       case Term.Block(Seq(cls@Defn.Class(_, name, _, ctor, _), companion: Defn.Object)) ⇒
-        val result       = Dilate.newtypeApply(name, ctor.paramss)
+        val result = Dilate.newtypeApply(name, ctor.paramss)
         val newClass: Defn.Class = cls.copy(
           ctor = Ctor.Primary.apply(ctor.mods, ctor.name, result.domain.finalArgs)
         )
 
         val templateStats: Option[Seq[Stat]] = Try(
-          result.template.valueclasses ++:
-          result.template.implicitDefs ++:
-          companion.templ.stats.getOrElse(Nil)
+          result.template.traits ++:
+            result.template.types ++:
+            result.template.implicitClasses ++:
+            companion.templ.stats.getOrElse(Nil)
         ).toOption
 
         val newCompanion: Defn.Object = companion.copy(templ = companion.templ.copy(stats = templateStats))
 
-        println(s"\n$newClass\n$newCompanion\n")
         Term.Block(Seq(newClass, newCompanion))
-
-      case cls@Defn.Class(_, name, _, ctor, _)                                          ⇒
+      case cls@Defn.Class(_, name, _, ctor, _) ⇒
         val result: ExtractionResult = Dilate.newtypeApply(name, ctor.paramss)
         val newClass: Defn.Class = cls.copy(
           ctor = Ctor.Primary.apply(ctor.mods, ctor.name, result.domain.finalArgs)
@@ -54,7 +54,6 @@ class newtype extends StaticAnnotation {
             ..${result.template.implicitClasses}
           }"""
 
-        println(s"\n$newClass\n$newCompanion\n")
         Term.Block(Seq(newClass, newCompanion))
       case _ ⇒
         println(defn.structure)

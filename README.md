@@ -19,31 +19,60 @@ To get started with SBT, simply add the following to your `build.sbt` file:
 libraryDependencies += "com.vitorsvieira" %% "dilate" % "0.1.0"
 ```
 
+Applying `@valueclass` to the `Person` class as below:
+```scala
+  case class Age(value: Int) extends AnyVal
 
-### Special Thanks
+  @valueclass sealed class Person(
+    v1:           Boolean,
+    @hold v2:     Age                 = Age(1),
+    v3:           Int                 = 1,
+    v4:           Int,
+    bankAccount1: BankAccount1.Number,
+    bankAccount2: BankAccount1.Number)
+```
 
-- [Ólafur Geirsson](https://twitter.com/olafurpg)
+Generates the following types and further implicit conversions on compile-time:
+```scala
+  sealed class Person(v1: Person.V1,
+   v2: Age = Age(1),
+   v3: Person.V3 = Person.V3(1),
+   v4: Person.V4,
+   bankAccount1: BankAccount1.Number,
+   bankAccount2: BankAccount1.Number)
+  object Person {
+    final case class V1(self: Boolean) extends AnyVal
+    final case class V3(self: Int) extends AnyVal
+    final case class V4(self: Int) extends AnyVal
+    private[this] implicit def toV1(v1: Boolean): Person.V1 = Person.V1(v1)
+    implicit def toBooleanfromV1(v1: V1): Boolean = v1.self
+    private[this] implicit def toV3(v3: Int): Person.V3 = Person.V3(v3)
+    implicit def toIntfromV3(v3: V3): Int = v3.self
+    private[this] implicit def toV4(v4: Int): Person.V4 = Person.V4(v4)
+    implicit def toIntfromV4(v4: V4): Int = v4.self
+  }
+```
 
 
-## References and Q&A ##
+### References and Answers ##
 
-### Value Class ###
+#### Value Class
 
 - [Value Classes and Universal Traits](http://docs.scala-lang.org/overviews/core/value-classes.html)
 - [SIP-15 - Value Classes](http://docs.scala-lang.org/sips/completed/value-classes.html)
 - [Compiling Scala for Performance - Iulian Dragos - 2010 - Thesis](https://infoscience.epfl.ch/record/150270/files/EPFL_TH4820.pdf)
 - [Implementing value classes in Dotty, a compiler for Scala - Guillaume Martres - 2015 - Thesis](http://guillaume.martres.me/master_thesis.pdf)
+- [OpenJDK - State of the Values("Java 10 Value Types")](http://cr.openjdk.java.net/~jrose/values/values-0.html)
+- [OpenJDK - Project Valhalla("Java 10 Value Types")](http://openjdk.java.net/projects/valhalla/)
 - [Typelevel - Machinist vs. value classes](http://typelevel.org/blog/2015/08/06/machinist.html)
 - [Type all the things! - Julien Tournay](http://jto.github.io/articles/type-all-the-things/)
 - [Adding Semantic to Base Types Parameters in Scala](https://coderwall.com/p/l-plmq/adding-semantic-to-base-types-parameters-in-scala)
-- [State of the Values("Java 10 Value Types")](http://cr.openjdk.java.net/~jrose/values/values-0.html)
-- [Project Valhalla("Java 10 Value Types")](http://openjdk.java.net/projects/valhalla/)
 - [Beware the Scala Value Class](http://blog.johnbnelson.com/beware-the-scala-value-class.html)
-- [Scala value class, use cases](http://stackoverflow.com/questions/40704525/scala-value-class-use-cases)
-- [Idiomatic approach to Scala Value Classes](http://stackoverflow.com/questions/27380720/idiomatic-approach-to-scala-value-classes)
-- [In these cases, the Scala value class will be “boxed”, right?](http://stackoverflow.com/questions/15860179/in-these-cases-the-scala-value-class-will-be-boxed-right)
+- [SO - Scala value class, use cases](http://stackoverflow.com/questions/40704525/scala-value-class-use-cases)
+- [SO - Idiomatic approach to Scala Value Classes](http://stackoverflow.com/questions/27380720/idiomatic-approach-to-scala-value-classes)
+- [SO - In these cases, the Scala value class will be “boxed”, right?](http://stackoverflow.com/questions/15860179/in-these-cases-the-scala-value-class-will-be-boxed-right)
 
-### Unboxed Tagged Types ###
+#### Unboxed Tagged Types
 
 - [Haskell - newtype](https://wiki.haskell.org/Newtype)
 - [Practical uses for Unboxed Tagged Types](http://etorreborre.blogspot.nl/2011/11/practical-uses-for-unboxed-tagged-types.html)

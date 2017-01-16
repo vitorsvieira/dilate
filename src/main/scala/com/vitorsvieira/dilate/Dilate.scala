@@ -25,6 +25,7 @@ object Dilate {
   sealed trait Domain extends Product with Serializable
   final case object NewType extends Domain
   final case object ValueClass extends Domain
+
   /*
    * receives owner class name and its parameter lists
    *  - extract valueclasses based on the parameters,
@@ -50,8 +51,10 @@ object Dilate {
   }
 
   /*
-   * TODO
-   * UPDATE THIS COMMENT
+   * receives owner class name and its parameter lists
+   *  - extract tagged types based on the parameters,
+   *  - insert the traits, types, implicit classes into the companion object
+   *  - update the owner class with the new parameters based on the tagged types
    */
   private[dilate] def newtypeApply(
     ownerClassName: Type.Name,
@@ -66,16 +69,13 @@ object Dilate {
     val companionObjectTemplate = CompanionObjectTemplate(
       traits          = result.extraction.flatMap(_.traitT),
       types           = result.extraction.flatMap(_.typeT),
-      implicitClasses = result.extraction.flatMap(_.implicitClass)
+      implicitClasses = buildImplicitClass(result.extraction)
     )
 
     ExtractionResult(template = companionObjectTemplate, domain = result.newArgs)
   }
 
-  /*
-   * TODO
-   * UPDATE THIS COMMENT
-   */
+  /* Split args into non-implicit and implicit and extract respective meta related to the given domain */
   private[this] def parseArgs(ownerClassName: Type.Name, params: Seq[Seq[Term.Param]])(implicit domain: Domain) = {
 
     // return args separated between implicit and non-implicit, not modified.
@@ -101,10 +101,7 @@ object Dilate {
     OwnerClassArgsSplitted(p._1, p._2)
   }
 
-  /*
-   * TODO
-   * UPDATE THIS COMMENT
-   */
+  /* extract respective meta related to the given domain */
   private[this] def extractArgs(
     ownerClassName: Type.Name,
     params:         Seq[Term.Param]
@@ -156,16 +153,15 @@ object Dilate {
         )
       case (_, NewType) ⇒
         Extraction(
-          newArgs       = buildOwnerClassArgs(ownerClassName),
-          traitT        = buildTrait(ownerClassName),
-          typeT         = buildType(ownerClassName),
-          implicitClass = None //buildImplicitClass(ownerClassName)
+          newArgs = buildOwnerClassArgs(ownerClassName),
+          traitT  = buildTrait,
+          typeT   = buildType
         )
     }
 
   /* build owner class args */
-  private[this] def buildOwnerClassArgs(typeName: Type.Name)(implicit param: Term.Param) =
-    Term.Param(
+  private[this] def buildOwnerClassArgs(typeName: Type.Name)(implicit domain: Domain, param: Term.Param) = domain match {
+    case ValueClass =>  Term.Param(
       mods    = param.mods,
       name    = Term.Name(param.name.value),
       decltpe = Some(Type.Name(s"$typeName.${param.name.value.capitalize}")),
@@ -173,6 +169,16 @@ object Dilate {
         term ⇒ q"""${Ctor.Ref.Name(s"$typeName.${param.name.value.capitalize}")}($term)"""
       )
     )
+    case NewType => Term.Param(
+      mods    = param.mods,
+      name    = Term.Name(param.name.value),
+      decltpe = Some(Type.Name(s"$typeName.${param.name.value.capitalize}")),
+      default = param.default.map(
+        term ⇒ q"""$term.${Term.Name(param.name.value.head.toLower + param.name.value.tail)}"""
+      )
+    )
+  }
+
 
   /* build value class */
   private[this] def buildValueClass(typeName: Type.Name)(implicit param: Term.Param): Option[Defn.Class] = {
@@ -188,16 +194,14 @@ object Dilate {
     }($valueClassTerm) extends AnyVal""").toOption
   }
 
-  /*
-   * TODO
-   * UPDATE THIS COMMENT
-   */
+  /* Build implicit conversion methods for valueclass */
   private[this] def buildImplicitDef(typeName: Type.Name)(implicit param: Term.Param): Seq[Option[Defn.Def]] = {
 
     val name = param.name.value
     val path = s"$typeName.${name.capitalize}"
 
     def buildDef(
+      mods : Seq[Mod],
       methodName: String,
       argType:    Option[Type.Arg],
       decltpe:    Option[Type.Name],
@@ -205,7 +209,7 @@ object Dilate {
     ): Option[Defn.Def] =
       Try(
         Defn.Def.apply(
-          mods    = Seq(mod"private[this]", Mod.Implicit.apply()),
+          mods    = mods,
           name    = Term.Name(methodName),
           tparams = Nil,
           paramss = Seq(
@@ -224,6 +228,7 @@ object Dilate {
       ).toOption
 
     val toValueClass: Option[Defn.Def] = buildDef(
+      mods       = Seq(mod"private[this]", Mod.Implicit.apply()),
       methodName = s"to${name.capitalize}",
       argType    = param.decltpe,
       decltpe    = Option.apply(Type.Name(path)),
@@ -232,6 +237,7 @@ object Dilate {
 
     val fromValueClass: Option[Defn.Def] = {
       buildDef(
+        mods       = Seq(Mod.Implicit.apply()),
         methodName = s"to${param.decltpe.get.syntax.replaceAll("[^a-zA-Z0-9]", "")}from${name.capitalize}",
         argType    = Option.apply(Type.Name.apply(s"${name.capitalize}")),
         decltpe    = Option.apply(Type.Name(param.decltpe.get.syntax)),
@@ -242,23 +248,40 @@ object Dilate {
     Seq(toValueClass, fromValueClass)
   }
 
-  /*
-   * TODO
-   * UPDATE THIS COMMENT
-   */
-  private[this] def buildTrait(typeName: Type.Name)(implicit param: Term.Param): Option[Defn.Trait] = ???
+  /* Build trait tag for newtype */
+  private[this] def buildTrait(implicit param: Term.Param): Option[Defn.Trait] =
+    Try(q"trait ${Type.Name(s"${param.name.value.capitalize}Tag")}").toOption
 
-  /*
-   * TODO
-   * UPDATE THIS COMMENT
-   */
-  private[this] def buildType(typeName: Type.Name)(implicit param: Term.Param): Option[Defn.Type] = ???
+  /* build tagged type for newtype */
+  private[this] def buildType(implicit param: Term.Param): Option[Defn.Type] =
+    Try(
+      q"type ${Type.Name(param.name.value.capitalize)} = ${
+        Type.Name(param.decltpe.get.syntax)
+      } @@ ${Type.Name(s"${param.name.value.capitalize}Tag")}"
+    ).toOption
 
-  /*
-   * TODO
-   * UPDATE THIS COMMENT
-   */
-  //private[this] def buildImplicitClass(typeName: Type.Name)(implicit param: Term.Param): Option[Defn.Class] = ???
+  /* group implicit classes by type and generate method to restrict type domain*/
+  private[this] def buildImplicitClass(extractions: Seq[Extraction]): Seq[Defn.Class] = {
+
+    val types = extractions.flatMap(_.typeT).map {
+      case q"type ${ name } = ${ tpe } @@ $_" ⇒
+        val conversion =
+          q"""
+          def ${
+            Term.Name(name.value.head.toLower + name.value.tail)
+          }:$name = value.asInstanceOf[$name]
+          """
+        (tpe, conversion)
+    }
+
+    types.map(t ⇒ t._1.syntax).distinct.map { tpe ⇒
+      q"""implicit class ${
+        Type.Name(s"Tagged${tpe.replaceAll("[^a-zA-Z0-9]", "")}")
+      }(val value: ${Type.Name(tpe)}) extends AnyVal{
+            ..${types.filter(t ⇒ t._1.syntax == tpe).map(_._2)}
+      }"""
+    }
+  }
 
   /* return opinionated F[_] path */
   private[this] def getPath(f: String, args: Seq[String]) = f match {
@@ -288,31 +311,5 @@ object Dilate {
     case "Left"             ⇒ s"_root_.scala.util.Left[${args.mkString(",")}]"
     case "Right"            ⇒ s"_root_.scala.util.Right[${args.mkString(",")}]"
     case c                  ⇒ s"$c[${args.mkString(",")}]"
-  }
-
-  /* print Term.Param properties */
-  private[this] def debugParam(param: Term.Param): Unit = {
-    val d =
-      s"""|---------------------------------------------------
-          |param.mods             : ${param.mods}
-          |param.name             : ${param.name}
-          |param.decltpe          : ${param.decltpe}
-          |param.decltpe.structure:
-          | -> ${param.decltpe.get.structure.split(",").mkString(",\n\t")}
-          |
-          |param.decltpe.syntax   : ${param.decltpe.get.syntax}
-          |param.decltpe.children : ${param.decltpe.get.children}
-          |param.decltpe.parent   : ${param.decltpe.get.parent}
-          |param.decltpe.pos      : ${param.decltpe.get.pos}
-          |param.default          : ${param.default}
-          |param.pos              : ${param.pos}
-          |param.parent           : ${param.parent}
-          |param.children         : ${param.children}
-          |param.tokens           : ${param.tokens}
-          |param.syntax           : ${param.syntax}
-          |param.structure:
-          | -> ${param.structure.split(",").mkString(",\n\t")}
-          """.stripMargin
-    println(s"$d")
   }
 }

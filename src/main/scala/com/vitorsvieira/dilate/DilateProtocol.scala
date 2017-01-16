@@ -16,8 +16,12 @@
 
 package com.vitorsvieira.dilate
 
+import scala.annotation.StaticAnnotation
 import scala.collection.immutable.Seq
 import scala.meta._
+
+sealed trait ClassParamAnnotation extends StaticAnnotation
+final class hold extends ClassParamAnnotation
 
 final private[dilate] case class ExtractionResult(
   template: CompanionObjectTemplate,
@@ -42,10 +46,9 @@ final private[dilate] case class ExtractionPreResult(
   newArgs:    OwnerClassArgs)
 
 final private[dilate] case class Extraction(
-  newArgs:       Term.Param,
-  valueclass:    Option[Defn.Class]    = None,
-  traitT:        Option[Defn.Trait]    = None,
-  typeT:         Option[Defn.Type]     = None,
-  implicitClass: Option[Defn.Class]    = None,
-  implicitDef:   Seq[Option[Defn.Def]] = Seq.empty
+  newArgs:     Term.Param,
+  valueclass:  Option[Defn.Class]    = None,
+  traitT:      Option[Defn.Trait]    = None,
+  typeT:       Option[Defn.Type]     = None,
+  implicitDef: Seq[Option[Defn.Def]] = Seq.empty
 )

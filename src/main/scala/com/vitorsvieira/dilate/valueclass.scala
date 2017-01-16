@@ -16,13 +16,13 @@
 
 package com.vitorsvieira.dilate
 
-import scala.annotation.StaticAnnotation
+import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.collection.immutable.Seq
 import scala.meta._
 import scala.util.Try
 
-
-class valueclass extends StaticAnnotation {
+@compileTimeOnly("@valueclass macro expands only in compile time.")
+final class valueclass extends StaticAnnotation {
   inline def apply(defn: Any): Any = meta {
     defn match {
       case Term.Block(Seq(cls@Defn.Class(_, name, _, ctor, _), companion: Defn.Object)) ⇒
@@ -37,11 +37,13 @@ class valueclass extends StaticAnnotation {
             companion.templ.stats.getOrElse(Nil)
         ).toOption
 
-        val newCompanion: Defn.Object =
-          companion.copy(templ = companion.templ.copy(stats = templateStats))
+        val newCompanion: Defn.Object = companion.copy(templ = companion.templ.copy(stats = templateStats))
 
-        println(s"\n$newClass\n$newCompanion\n")
-        Term.Block(Seq(newClass,newCompanion))
+        val block = Term.Block(Seq(newClass, newCompanion))
+
+        println(s"with companion\n$block\n")
+
+        block
       case cls@Defn.Class(_, name, _, ctor, _)                                          ⇒
         val result: ExtractionResult = Dilate.valueclassApply(name, ctor.paramss)
         val newClass: Defn.Class = cls.copy(
@@ -54,11 +56,14 @@ class valueclass extends StaticAnnotation {
             ..${result.template.implicitDefs}
           }"""
 
-        println(s"\n$newClass\n$newCompanion\n")
-        Term.Block(Seq(newClass, newCompanion))
+        val block = Term.Block(Seq(newClass, newCompanion))
+
+        println(s"without companion\n$block\n")
+
+        block
       case _ ⇒
         println(defn.structure)
-        abort("@typed must annotate a class.")
+        abort("@valueclass must annotate a class.")
     }
   }
 }

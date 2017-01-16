@@ -18,151 +18,84 @@ package com.vitorsvieira.dilate
 
 object Examples extends App {
 
-  //@valueclass case class P1var(var age: Seq[Int])
+  /**
+   * This example uses @valueclass to provide type-safety and some `zero runtime allocation`.
+   * The @valueclass macro has no restrictions regarding default argument values!
+   *
+   * Please refer to the readme for more information.
+   */
+  @valueclass case class BankAccount1(
+      number:      BigInt          = 10,
+      funds:       BigDecimal,
+      withdrawals: Seq[BigDecimal],
+      token:       java.util.UUID) {
 
-  case class Age(value: Int) extends AnyVal
-  @valueclass sealed class P2(
-    v1:       Boolean,
-    @hold v2: Age     = Age(1),
-    v3:       Int     = 1,
-    v4:       Int
+    def methodA = number * 1000
+  }
+
+  object BankAccount1 {
+    def renew(account: BankAccount1) = account.copy(token = java.util.UUID.randomUUID())
+  }
+
+  /**
+   * This example uses @newtype to provide type-safety and `zero runtime allocation`.
+   * Notice the object import on top of the class.
+   * This import is temporarily required to provide default argument values
+   * using the implicit conversion generated inside the object.
+   *
+   * Please refer to the readme for more information.
+   */
+  import BankAccount2._
+  @newtype case class BankAccount2(
+    activated:     Boolean         = true.activated,
+    number:        BigInt,
+    funds:         BigDecimal,
+    withdrawals:   Seq[BigDecimal],
+    token:         java.util.UUID,
+    @hold manager: String)
+
+  object BankAccount2 {
+    val field = "value"
+
+    def renew(account: BankAccount2) = account.copy(token = java.util.UUID.randomUUID().token)
+  }
+
+  val account2 = BankAccount2(
+    false.activated,
+    BigInt(10).number,
+    BigDecimal(10).funds,
+    Seq(BigDecimal(10)).withdrawals,
+    java.util.UUID.randomUUID().token,
+    "test"
   )
 
-  object Scoring {
-    trait Design
-    trait Usability
-    trait Durability
+  val isActivated: BankAccount2.Activated = true.activated
+  val number: BankAccount2.Number = BigInt(10).number
+  val funds: BankAccount2.Funds = BigDecimal(10).funds
+  val withdrawals: BankAccount2.Withdrawals = Seq(BigDecimal(10)).withdrawals
+  val token: BankAccount2.Token = java.util.UUID.randomUUID().token
 
-    type DesignScore = Int @@ Design
-    type UsabilityScore = Int @@ Usability
-    type DurabilityScore = Int @@ Durability
+  println(account2)
 
-    implicit class TaggedInt(val i: Int) extends AnyVal {
-      def design: DesignScore = i.asInstanceOf[DesignScore]
-      def usability: UsabilityScore = i.asInstanceOf[UsabilityScore]
-      def durability: DurabilityScore = i.asInstanceOf[DurabilityScore]
-    }
-  }
-  case class Scoring(
-      design:     Scoring.DesignScore,
-      usability:  Scoring.UsabilityScore,
-      durability: Scoring.DurabilityScore) {
+  /**
+   * This example shows a class using an external value class as an argument
+   * and skipping it using @hold annotation.
+   *
+   * Note in this example that Person uses BankAccount1.Number and BankAccount2.Number.
+   *
+   * Both types are not absorbed by Person and stay as the way they are.
+   * In current implementation types that are already dependent on other type are not absorbed.
+   *
+   * Please refer to the readme for more information.
+   */
+  case class Age(value: Int) extends AnyVal
 
-    def sum = design + usability + durability
-  }
-  import Scoring._
+  @valueclass sealed class Person(
+    v1:           Boolean,
+    @hold v2:     Age                 = Age(1),
+    v3:           Int                 = 1,
+    v4:           Int,
+    bankAccount1: BankAccount1.Number,
+    bankAccount2: BankAccount1.Number)
 
-  val sc1 = Scoring(1.design, 1.usability, 1.durability)
-  println(sc1.sum)
-
-  //@newtype class Scoring2(ratingScore: Int, creditScore: Int)
-
-  //  object BankAccount {
-  //    def renew(account: BankAccount) = account.copy(token = java.util.UUID.randomUUID())
-  //  }
-  //  @typed case class BankAccount(
-  //    number:      BigInt          = 10,
-  //    funds:       BigDecimal,
-  //    withdrawals: Seq[BigDecimal],
-  //    token:       java.util.UUID
-  //  )
-
-  //  @typed protected class P3(age: Int)
-  //  @typed class P1(i: Boolean)
-  //  @typed case class P3(age: P1)
-  //  val p = P3(P3.Age(P1(1)))
-  //  @typed case class P2(age: Int)
-
-  //  val mem1 = config(
-  //    Key.exec.benchRuns -> 20
-  //  ) withWarmer {
-  //      warmer
-  //    } withMeasurer (new Measurer.MemoryFootprint) measure {
-  //      (1 to 1000000).foreach(i => P1(i))
-  //    }
-  //  println(s"Total memory: $mem1")
-  //
-  //  val gc1 = config(
-  //    Key.exec.benchRuns -> 20
-  //  ) withWarmer {
-  //      warmer
-  //    } withMeasurer (new Measurer.GarbageCollectionCycles, Aggregator.median[Int]) measure {
-  //      (1 to 150000000).foreach(i => P1(i))
-  //    }
-  //  println(s"Total gcs: $gc1")
-
-  //  trait A
-  //  trait B
-  //
-  //  @typed case class P1var(var age: Seq[Int])
-  //  @typed case class P1val(val age: Seq[Int])
-  //  @typed class P2var(var age: Seq[Int])
-  //  @typed class P2val(val age: Seq[Int])
-  //  @typed case class Person3(age: Int = 42)
-  //  @typed class T1(a: Tuple2[Int, Int])
-  //  @typed case class T1C(a: Tuple2[Int, Int])
-  //  @typed case class PersonOpt1(age: Option[Int])
-  //  @typed case class PersonOpt2(age: Option[Int] = None)
-  //  @typed case class PersonOpt3(age: Option[Int] = Some(10))
-
-  //  @typed case class BankAccount(number: BigInt, age: Int, funds: BigDecimal, token: UUID)
-  //  object BankAccount {
-  //    implicit def toNumber(number: BigInt): BankAccount.Number = BankAccount.Number(number)
-  //    implicit def toAge(age: Int): BankAccount.Age = BankAccount.Age(age)
-  //    implicit def toFunds(funds: BigDecimal): BankAccount.Funds = BankAccount.Funds(funds)
-  //    implicit def toToken(uuid: UUID): BankAccount.Token = BankAccount.Token(uuid)
-  //
-  //    def renew(account: BankAccount) = account.copy(token = java.util.UUID.randomUUID())
-  //  }
-  //
-  //  val b = new BankAccount(BigInt(4), 30, BigDecimal(1000), UUID.randomUUID())
-  //  println(b)
-
-  //@typed case class PersonOpt2(age: mutable.ListBuffer[Int])
-  //
-  //  @typed case class Person2(
-  //    age: Person1.Age,
-  //    movies: Set[String],
-  //    friends: List[String],
-  //    phoneNumbers: Map[Int, String]
-  //  )
-  //
-  //  val movies = Person2.Movies(Set("Something"))
-  //  val friends = Person2.Friends(List("Something"))
-  //  val phoneNumbers = Person2.PhoneNumbers(Map(1234 → "mobile"))
-  //
-  //  val p2: Person2 = Person2.apply(Person1.Age(10), movies, friends, phoneNumbers)
-  //
-  //  println(p2)
-
-  //  case class Person1(friends: Friends)
-  //  case class Friends(value: List[String]) extends AnyVal
-  //
-  //  val p = Person1(friends = Friends(List.empty))
-
-  //  @typed case class Person2(
-  //    age:       Person1.Age,
-  //    firstName: String      = "scala.meta"
-  //  )
-  //
-  //  @typed case class Person3(
-  //    age: Int = 42,
-  //    firstName: String = "John",
-  //    lastName: String = "Doe"
-  //  )
-  //
-  //  @typed class Person4(
-  //      age:       Int    = 42,
-  //      firstName: String = "John",
-  //      lastName:  String = "Doe"
-  //    )(implicit i: Boolean, s: String)
-  //    object Person4 {
-  //      def something(): Boolean = true
-  //    }
-
-  //  case class ClassX(
-  //    i1: Int @positive,
-  //    i2: Int,
-  //    i3: Int
-  //  )
 }
