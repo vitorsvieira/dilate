@@ -209,14 +209,778 @@ object BankAccount {
 }
 ```
 
-
 Note that in the example above `import BankAccount._` is presented. 
 This is required only when using `@newtype` annotation and specially for classes with default values and/or companion objects with values looking for implicit conversion.
 This is required due to current limitations on macro whiteboxing.
 
 All the examples above are available in the `examples` folder.
 
+### Bytecode Analysis
 
+Using `javap -p BankAccountWithoutMacro\$ BankAccountWithValueclass\$ BankAccountWithNewtype\$` to disassemble and see the bytecode generated with and without the macros, 
+the following output shows the intended types being used!
+
+#### Without any macro
+```scala
+Warning: Binary file BankAccountWithoutMacro$ contains com.vitorsvieira.dilate.BankAccountWithoutMacro$
+Compiled from "Examples.scala"
+public final class com.vitorsvieira.dilate.BankAccountWithoutMacro$ implements scala.Serializable {
+  public static final com.vitorsvieira.dilate.BankAccountWithoutMacro$ MODULE$;
+
+  private final java.lang.String field;
+
+  private volatile boolean bitmap$init$0;
+
+  public static {};
+    Code:
+       0: new           #2                  // class com/vitorsvieira/dilate/BankAccountWithoutMacro$
+       3: invokespecial #14                 // Method "<init>":()V
+       6: return
+
+  public java.lang.String field();
+    Code:
+       0: aload_0
+       1: getfield      #21                 // Field bitmap$init$0:Z
+       4: ifeq          17
+       7: aload_0
+       8: getfield      #23                 // Field field:Ljava/lang/String;
+      11: pop
+      12: aload_0
+      13: getfield      #23                 // Field field:Ljava/lang/String;
+      16: areturn
+      17: new           #25                 // class scala/UninitializedFieldError
+      20: dup
+      21: ldc           #27                 // String Uninitialized field: Examples.scala: 85
+      23: invokespecial #30                 // Method scala/UninitializedFieldError."<init>":(Ljava/lang/String;)V
+      26: athrow
+    LineNumberTable:
+      line 85: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      27     0  this   Lcom/vitorsvieira/dilate/BankAccountWithoutMacro$;
+
+  public com.vitorsvieira.dilate.BankAccountWithoutMacro renew(com.vitorsvieira.dilate.BankAccountWithoutMacro);
+    Code:
+       0: invokestatic  #39                 // Method java/util/UUID.randomUUID:()Ljava/util/UUID;
+       3: astore_2
+       4: aload_1
+       5: invokevirtual #45                 // Method com/vitorsvieira/dilate/BankAccountWithoutMacro.copy$default$1:()Z
+       8: istore_3
+       9: aload_1
+      10: invokevirtual #49                 // Method com/vitorsvieira/dilate/BankAccountWithoutMacro.copy$default$2:()Lscala/math/BigInt;
+      13: astore        4
+      15: aload_1
+      16: invokevirtual #53                 // Method com/vitorsvieira/dilate/BankAccountWithoutMacro.copy$default$3:()Lscala/math/BigDecimal;
+      19: astore        5
+      21: aload_1
+      22: invokevirtual #57                 // Method com/vitorsvieira/dilate/BankAccountWithoutMacro.copy$default$4:()Lscala/collection/Seq;
+      25: astore        6
+      27: aload_1
+      28: invokevirtual #60                 // Method com/vitorsvieira/dilate/BankAccountWithoutMacro.copy$default$6:()Ljava/lang/String;
+      31: astore        7
+      33: aload_1
+      34: iload_3
+      35: aload         4
+      37: aload         5
+      39: aload         6
+      41: aload_2
+      42: aload         7
+      44: invokevirtual #64                 // Method com/vitorsvieira/dilate/BankAccountWithoutMacro.copy:(ZLscala/math/BigInt;Lscala/math/BigDecimal;Lscala/collection/Seq;Ljava/util/UUID;Ljava/lang/String;)Lcom/vitorsvieira/dilate/BankAccountWithoutMacro;
+      47: areturn
+    LineNumberTable:
+      line 87: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      48     0  this   Lcom/vitorsvieira/dilate/BankAccountWithoutMacro$;
+          0      48     1 bankAccount   Lcom/vitorsvieira/dilate/BankAccountWithoutMacro;
+          4      43     2  x$13   Ljava/util/UUID;
+          9      38     3  x$14   Z
+         15      32     4  x$15   Lscala/math/BigInt;
+         21      26     5  x$16   Lscala/math/BigDecimal;
+         27      20     6  x$17   Lscala/collection/Seq;
+         33      14     7  x$18   Ljava/lang/String;
+
+  public com.vitorsvieira.dilate.BankAccountWithoutMacro apply(boolean, scala.math.BigInt, scala.math.BigDecimal, scala.collection.Seq<scala.math.BigDecimal>, java.util.UUID, java.lang.String);
+    Code:
+       0: new           #41                 // class com/vitorsvieira/dilate/BankAccountWithoutMacro
+       3: dup
+       4: iload_1
+       5: aload_2
+       6: aload_3
+       7: aload         4
+       9: aload         5
+      11: aload         6
+      13: invokespecial #80                 // Method com/vitorsvieira/dilate/BankAccountWithoutMacro."<init>":(ZLscala/math/BigInt;Lscala/math/BigDecimal;Lscala/collection/Seq;Ljava/util/UUID;Ljava/lang/String;)V
+      16: areturn
+    LineNumberTable:
+      line 71: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      17     0  this   Lcom/vitorsvieira/dilate/BankAccountWithoutMacro$;
+          0      17     1 activated   Z
+          0      17     2 number   Lscala/math/BigInt;
+          0      17     3 funds   Lscala/math/BigDecimal;
+          0      17     4 withdrawals   Lscala/collection/Seq;
+          0      17     5 token   Ljava/util/UUID;
+          0      17     6 manager   Ljava/lang/String;
+
+  public scala.Option<scala.Tuple6<java.lang.Object, scala.math.BigInt, scala.math.BigDecimal, scala.collection.Seq<scala.math.BigDecimal>, java.util.UUID, java.lang.String>> unapply(com.vitorsvieira.dilate.BankAccountWithoutMacro);
+    Code:
+       0: aload_1
+       1: ifnonnull     10
+       4: getstatic     #93                 // Field scala/None$.MODULE$:Lscala/None$;
+       7: goto          51
+      10: new           #95                 // class scala/Some
+      13: dup
+      14: new           #97                 // class scala/Tuple6
+      17: dup
+      18: aload_1
+      19: invokevirtual #99                 // Method com/vitorsvieira/dilate/BankAccountWithoutMacro.activated:()Z
+      22: invokestatic  #105                // Method scala/runtime/BoxesRunTime.boxToBoolean:(Z)Ljava/lang/Boolean;
+      25: aload_1
+      26: invokevirtual #107                // Method com/vitorsvieira/dilate/BankAccountWithoutMacro.number:()Lscala/math/BigInt;
+      29: aload_1
+      30: invokevirtual #109                // Method com/vitorsvieira/dilate/BankAccountWithoutMacro.funds:()Lscala/math/BigDecimal;
+      33: aload_1
+      34: invokevirtual #111                // Method com/vitorsvieira/dilate/BankAccountWithoutMacro.withdrawals:()Lscala/collection/Seq;
+      37: aload_1
+      38: invokevirtual #113                // Method com/vitorsvieira/dilate/BankAccountWithoutMacro.token:()Ljava/util/UUID;
+      41: aload_1
+      42: invokevirtual #115                // Method com/vitorsvieira/dilate/BankAccountWithoutMacro.manager:()Ljava/lang/String;
+      45: invokespecial #118                // Method scala/Tuple6."<init>":(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+      48: invokespecial #121                // Method scala/Some."<init>":(Ljava/lang/Object;)V
+      51: areturn
+    LineNumberTable:
+      line 71: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      52     0  this   Lcom/vitorsvieira/dilate/BankAccountWithoutMacro$;
+          0      52     1   x$0   Lcom/vitorsvieira/dilate/BankAccountWithoutMacro;
+
+  public boolean $lessinit$greater$default$1();
+    Code:
+       0: iconst_1
+       1: ireturn
+    LineNumberTable:
+      line 72: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithoutMacro$;
+
+  public boolean apply$default$1();
+    Code:
+       0: iconst_1
+       1: ireturn
+    LineNumberTable:
+      line 72: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithoutMacro$;
+
+  private java.lang.Object readResolve();
+    Code:
+       0: getstatic     #130                // Field MODULE$:Lcom/vitorsvieira/dilate/BankAccountWithoutMacro$;
+       3: areturn
+    LineNumberTable:
+      line 83: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       4     0  this   Lcom/vitorsvieira/dilate/BankAccountWithoutMacro$;
+
+  private com.vitorsvieira.dilate.BankAccountWithoutMacro$();
+    Code:
+       0: aload_0
+       1: invokespecial #131                // Method java/lang/Object."<init>":()V
+       4: aload_0
+       5: putstatic     #130                // Field MODULE$:Lcom/vitorsvieira/dilate/BankAccountWithoutMacro$;
+       8: aload_0
+       9: ldc           #133                // String value
+      11: putfield      #23                 // Field field:Ljava/lang/String;
+      14: aload_0
+      15: iconst_1
+      16: putfield      #21                 // Field bitmap$init$0:Z
+      19: return
+    LineNumberTable:
+      line 101: 0
+      line 85: 8
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      20     0  this   Lcom/vitorsvieira/dilate/BankAccountWithoutMacro$;
+}
+```
+
+#### bytecode generated with @valueclass
+
+```scala
+Warning: Binary file BankAccountWithValueclass$ contains com.vitorsvieira.dilate.BankAccountWithValueclass$
+Compiled from "Examples.scala"
+public final class com.vitorsvieira.dilate.BankAccountWithValueclass$ implements scala.Serializable {
+  public static final com.vitorsvieira.dilate.BankAccountWithValueclass$ MODULE$;
+
+  private final java.lang.String field;
+
+  private volatile boolean bitmap$init$0;
+
+  public static {};
+    Code:
+       0: new           #2                  // class com/vitorsvieira/dilate/BankAccountWithValueclass$
+       3: invokespecial #14                 // Method "<init>":()V
+       6: return
+
+  private boolean toActivated(boolean);
+    Code:
+       0: iload_1
+       1: ireturn
+    LineNumberTable:
+      line 12: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+          0       2     1 activated   Z
+
+  public boolean toBooleanfromActivated(boolean);
+    Code:
+       0: iload_1
+       1: ireturn
+    LineNumberTable:
+      line 13: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+          0       2     1 activated   Z
+
+  private scala.math.BigInt toNumber(scala.math.BigInt);
+    Code:
+       0: aload_1
+       1: areturn
+    LineNumberTable:
+      line 14: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+          0       2     1 number   Lscala/math/BigInt;
+
+  public scala.math.BigInt toBigIntfromNumber(scala.math.BigInt);
+    Code:
+       0: aload_1
+       1: areturn
+    LineNumberTable:
+      line 15: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+          0       2     1 number   Lscala/math/BigInt;
+
+  private scala.math.BigDecimal toFunds(scala.math.BigDecimal);
+    Code:
+       0: aload_1
+       1: areturn
+    LineNumberTable:
+      line 16: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+          0       2     1 funds   Lscala/math/BigDecimal;
+
+  public scala.math.BigDecimal toBigDecimalfromFunds(scala.math.BigDecimal);
+    Code:
+       0: aload_1
+       1: areturn
+    LineNumberTable:
+      line 17: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+          0       2     1 funds   Lscala/math/BigDecimal;
+
+  private scala.collection.Seq<scala.math.BigDecimal> toWithdrawals(scala.collection.Seq<scala.math.BigDecimal>);
+    Code:
+       0: aload_1
+       1: areturn
+    LineNumberTable:
+      line 18: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+          0       2     1 withdrawals   Lscala/collection/Seq;
+
+  public scala.collection.Seq<scala.math.BigDecimal> toSeqBigDecimalfromWithdrawals(scala.collection.Seq<scala.math.BigDecimal>);
+    Code:
+       0: aload_1
+       1: areturn
+    LineNumberTable:
+      line 19: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+          0       2     1 withdrawals   Lscala/collection/Seq;
+
+  private java.util.UUID toToken(java.util.UUID);
+    Code:
+       0: aload_1
+       1: areturn
+    LineNumberTable:
+      line 20: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+          0       2     1 token   Ljava/util/UUID;
+
+  public java.util.UUID tojavautilUUIDfromToken(java.util.UUID);
+    Code:
+       0: aload_1
+       1: areturn
+    LineNumberTable:
+      line 21: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+          0       2     1 token   Ljava/util/UUID;
+
+  public java.lang.String field();
+    Code:
+       0: aload_0
+       1: getfield      #46                 // Field bitmap$init$0:Z
+       4: ifeq          17
+       7: aload_0
+       8: getfield      #48                 // Field field:Ljava/lang/String;
+      11: pop
+      12: aload_0
+      13: getfield      #48                 // Field field:Ljava/lang/String;
+      16: areturn
+      17: new           #50                 // class scala/UninitializedFieldError
+      20: dup
+      21: ldc           #52                 // String Uninitialized field: Examples.scala: 22
+      23: invokespecial #55                 // Method scala/UninitializedFieldError."<init>":(Ljava/lang/String;)V
+      26: athrow
+    LineNumberTable:
+      line 22: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      27     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+
+  public com.vitorsvieira.dilate.BankAccountWithValueclass renew(com.vitorsvieira.dilate.BankAccountWithValueclass);
+    Code:
+       0: aload_0
+       1: invokestatic  #63                 // Method java/util/UUID.randomUUID:()Ljava/util/UUID;
+       4: invokespecial #65                 // Method toToken:(Ljava/util/UUID;)Ljava/util/UUID;
+       7: astore_2
+       8: aload_1
+       9: invokevirtual #71                 // Method com/vitorsvieira/dilate/BankAccountWithValueclass.copy$default$1:()Z
+      12: istore_3
+      13: aload_1
+      14: invokevirtual #75                 // Method com/vitorsvieira/dilate/BankAccountWithValueclass.copy$default$2:()Lscala/math/BigInt;
+      17: astore        4
+      19: aload_1
+      20: invokevirtual #79                 // Method com/vitorsvieira/dilate/BankAccountWithValueclass.copy$default$3:()Lscala/math/BigDecimal;
+      23: astore        5
+      25: aload_1
+      26: invokevirtual #83                 // Method com/vitorsvieira/dilate/BankAccountWithValueclass.copy$default$4:()Lscala/collection/Seq;
+      29: astore        6
+      31: aload_1
+      32: invokevirtual #86                 // Method com/vitorsvieira/dilate/BankAccountWithValueclass.copy$default$6:()Ljava/lang/String;
+      35: astore        7
+      37: aload_1
+      38: iload_3
+      39: aload         4
+      41: aload         5
+      43: aload         6
+      45: aload_2
+      46: aload         7
+      48: invokevirtual #90                 // Method com/vitorsvieira/dilate/BankAccountWithValueclass.copy:(ZLscala/math/BigInt;Lscala/math/BigDecimal;Lscala/collection/Seq;Ljava/util/UUID;Ljava/lang/String;)Lcom/vitorsvieira/dilate/BankAccountWithValueclass;
+      51: areturn
+    LineNumberTable:
+      line 23: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      52     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+          0      52     1 bankAccount   Lcom/vitorsvieira/dilate/BankAccountWithValueclass;
+          8      43     2   x$1   Ljava/util/UUID;
+         13      38     3   x$2   Z
+         19      32     4   x$3   Lscala/math/BigInt;
+         25      26     5   x$4   Lscala/math/BigDecimal;
+         31      20     6   x$5   Lscala/collection/Seq;
+         37      14     7   x$6   Ljava/lang/String;
+
+  public com.vitorsvieira.dilate.BankAccountWithValueclass apply(boolean, scala.math.BigInt, scala.math.BigDecimal, scala.collection.Seq, java.util.UUID, java.lang.String);
+    Code:
+       0: new           #67                 // class com/vitorsvieira/dilate/BankAccountWithValueclass
+       3: dup
+       4: iload_1
+       5: aload_2
+       6: aload_3
+       7: aload         4
+       9: aload         5
+      11: aload         6
+      13: invokespecial #102                // Method com/vitorsvieira/dilate/BankAccountWithValueclass."<init>":(ZLscala/math/BigInt;Lscala/math/BigDecimal;Lscala/collection/Seq;Ljava/util/UUID;Ljava/lang/String;)V
+      16: areturn
+    LineNumberTable:
+      line 2: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      17     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+          0      17     1 activated   Z
+          0      17     2 number   Lscala/math/BigInt;
+          0      17     3 funds   Lscala/math/BigDecimal;
+          0      17     4 withdrawals   Lscala/collection/Seq;
+          0      17     5 token   Ljava/util/UUID;
+          0      17     6 manager   Ljava/lang/String;
+
+  public scala.Option<scala.Tuple6<com.vitorsvieira.dilate.BankAccountWithValueclass$Activated, scala.math.BigInt, scala.math.BigDecimal, scala.collection.Seq<scala.math.BigDecimal>, java.util.UUID, java.lang.String>> unapply(com.vitorsvieira.dilate.BankAccountWithValueclass);
+    Code:
+       0: aload_1
+       1: ifnonnull     10
+       4: getstatic     #110                // Field scala/None$.MODULE$:Lscala/None$;
+       7: goto          83
+      10: new           #112                // class scala/Some
+      13: dup
+      14: new           #114                // class scala/Tuple6
+      17: dup
+      18: new           #116                // class com/vitorsvieira/dilate/BankAccountWithValueclass$Activated
+      21: dup
+      22: aload_1
+      23: invokevirtual #118                // Method com/vitorsvieira/dilate/BankAccountWithValueclass.activated:()Z
+      26: invokespecial #121                // Method com/vitorsvieira/dilate/BankAccountWithValueclass$Activated."<init>":(Z)V
+      29: new           #123                // class com/vitorsvieira/dilate/BankAccountWithValueclass$Number
+      32: dup
+      33: aload_1
+      34: invokevirtual #125                // Method com/vitorsvieira/dilate/BankAccountWithValueclass.number:()Lscala/math/BigInt;
+      37: invokespecial #128                // Method com/vitorsvieira/dilate/BankAccountWithValueclass$Number."<init>":(Lscala/math/BigInt;)V
+      40: new           #130                // class com/vitorsvieira/dilate/BankAccountWithValueclass$Funds
+      43: dup
+      44: aload_1
+      45: invokevirtual #132                // Method com/vitorsvieira/dilate/BankAccountWithValueclass.funds:()Lscala/math/BigDecimal;
+      48: invokespecial #135                // Method com/vitorsvieira/dilate/BankAccountWithValueclass$Funds."<init>":(Lscala/math/BigDecimal;)V
+      51: new           #137                // class com/vitorsvieira/dilate/BankAccountWithValueclass$Withdrawals
+      54: dup
+      55: aload_1
+      56: invokevirtual #139                // Method com/vitorsvieira/dilate/BankAccountWithValueclass.withdrawals:()Lscala/collection/Seq;
+      59: invokespecial #142                // Method com/vitorsvieira/dilate/BankAccountWithValueclass$Withdrawals."<init>":(Lscala/collection/Seq;)V
+      62: new           #144                // class com/vitorsvieira/dilate/BankAccountWithValueclass$Token
+      65: dup
+      66: aload_1
+      67: invokevirtual #146                // Method com/vitorsvieira/dilate/BankAccountWithValueclass.token:()Ljava/util/UUID;
+      70: invokespecial #149                // Method com/vitorsvieira/dilate/BankAccountWithValueclass$Token."<init>":(Ljava/util/UUID;)V
+      73: aload_1
+      74: invokevirtual #151                // Method com/vitorsvieira/dilate/BankAccountWithValueclass.manager:()Ljava/lang/String;
+      77: invokespecial #154                // Method scala/Tuple6."<init>":(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+      80: invokespecial #157                // Method scala/Some."<init>":(Ljava/lang/Object;)V
+      83: areturn
+    LineNumberTable:
+      line 2: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      84     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+          0      84     1   x$0   Lcom/vitorsvieira/dilate/BankAccountWithValueclass;
+
+  public boolean $lessinit$greater$default$1();
+    Code:
+       0: iconst_1
+       1: ireturn
+    LineNumberTable:
+      line 2: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+
+  public boolean apply$default$1();
+    Code:
+       0: iconst_1
+       1: ireturn
+    LineNumberTable:
+      line 2: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+
+  private java.lang.Object readResolve();
+    Code:
+       0: getstatic     #166                // Field MODULE$:Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+       3: areturn
+    LineNumberTable:
+      line 6: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       4     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+
+  private com.vitorsvieira.dilate.BankAccountWithValueclass$();
+    Code:
+       0: aload_0
+       1: invokespecial #167                // Method java/lang/Object."<init>":()V
+       4: aload_0
+       5: putstatic     #166                // Field MODULE$:Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+       8: aload_0
+       9: ldc           #169                // String value
+      11: putfield      #48                 // Field field:Ljava/lang/String;
+      14: aload_0
+      15: iconst_1
+      16: putfield      #46                 // Field bitmap$init$0:Z
+      19: return
+    LineNumberTable:
+      line 25: 0
+      line 22: 8
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      20     0  this   Lcom/vitorsvieira/dilate/BankAccountWithValueclass$;
+}
+```
+
+#### bytecode generated with @newtype
+
+```scala
+Warning: Binary file BankAccountWithNewtype$ contains com.vitorsvieira.dilate.BankAccountWithNewtype$
+Compiled from "Examples.scala"
+public final class com.vitorsvieira.dilate.BankAccountWithNewtype$ implements scala.Serializable {
+  public static final com.vitorsvieira.dilate.BankAccountWithNewtype$ MODULE$;
+
+  private final java.lang.String field;
+
+  private volatile boolean bitmap$init$0;
+
+  public static {};
+    Code:
+       0: new           #2                  // class com/vitorsvieira/dilate/BankAccountWithNewtype$
+       3: invokespecial #14                 // Method "<init>":()V
+       6: return
+
+  public boolean TaggedBoolean(boolean);
+    Code:
+       0: iload_1
+       1: ireturn
+    LineNumberTable:
+      line 14: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithNewtype$;
+          0       2     1 value   Z
+
+  public scala.math.BigInt TaggedBigInt(scala.math.BigInt);
+    Code:
+       0: aload_1
+       1: areturn
+    LineNumberTable:
+      line 15: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithNewtype$;
+          0       2     1 value   Lscala/math/BigInt;
+
+  public scala.math.BigDecimal TaggedBigDecimal(scala.math.BigDecimal);
+    Code:
+       0: aload_1
+       1: areturn
+    LineNumberTable:
+      line 16: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithNewtype$;
+          0       2     1 value   Lscala/math/BigDecimal;
+
+  public scala.collection.Seq<scala.math.BigDecimal> TaggedSeqBigDecimal(scala.collection.Seq<scala.math.BigDecimal>);
+    Code:
+       0: aload_1
+       1: areturn
+    LineNumberTable:
+      line 17: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithNewtype$;
+          0       2     1 value   Lscala/collection/Seq;
+
+  public java.util.UUID TaggedjavautilUUID(java.util.UUID);
+    Code:
+       0: aload_1
+       1: areturn
+    LineNumberTable:
+      line 18: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       2     0  this   Lcom/vitorsvieira/dilate/BankAccountWithNewtype$;
+          0       2     1 value   Ljava/util/UUID;
+
+  public java.lang.String field();
+    Code:
+       0: aload_0
+       1: getfield      #37                 // Field bitmap$init$0:Z
+       4: ifeq          17
+       7: aload_0
+       8: getfield      #39                 // Field field:Ljava/lang/String;
+      11: pop
+      12: aload_0
+      13: getfield      #39                 // Field field:Ljava/lang/String;
+      16: areturn
+      17: new           #41                 // class scala/UninitializedFieldError
+      20: dup
+      21: ldc           #43                 // String Uninitialized field: Examples.scala: 19
+      23: invokespecial #46                 // Method scala/UninitializedFieldError."<init>":(Ljava/lang/String;)V
+      26: athrow
+    LineNumberTable:
+      line 19: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      27     0  this   Lcom/vitorsvieira/dilate/BankAccountWithNewtype$;
+
+  public com.vitorsvieira.dilate.BankAccountWithNewtype renew(com.vitorsvieira.dilate.BankAccountWithNewtype);
+    Code:
+       0: getstatic     #53                 // Field com/vitorsvieira/dilate/BankAccountWithNewtype$TaggedjavautilUUID$.MODULE$:Lcom/vitorsvieira/dilate/BankAccountWithNewtype$TaggedjavautilUUID$;
+       3: aload_0
+       4: invokestatic  #59                 // Method java/util/UUID.randomUUID:()Ljava/util/UUID;
+       7: invokevirtual #61                 // Method TaggedjavautilUUID:(Ljava/util/UUID;)Ljava/util/UUID;
+      10: invokevirtual #64                 // Method com/vitorsvieira/dilate/BankAccountWithNewtype$TaggedjavautilUUID$.token$extension:(Ljava/util/UUID;)Ljava/util/UUID;
+      13: astore_2
+      14: aload_1
+      15: invokevirtual #70                 // Method com/vitorsvieira/dilate/BankAccountWithNewtype.copy$default$1:()Z
+      18: istore_3
+      19: aload_1
+      20: invokevirtual #74                 // Method com/vitorsvieira/dilate/BankAccountWithNewtype.copy$default$2:()Lscala/math/BigInt;
+      23: astore        4
+      25: aload_1
+      26: invokevirtual #78                 // Method com/vitorsvieira/dilate/BankAccountWithNewtype.copy$default$3:()Lscala/math/BigDecimal;
+      29: astore        5
+      31: aload_1
+      32: invokevirtual #82                 // Method com/vitorsvieira/dilate/BankAccountWithNewtype.copy$default$4:()Ljava/lang/Object;
+      35: astore        6
+      37: aload_1
+      38: invokevirtual #85                 // Method com/vitorsvieira/dilate/BankAccountWithNewtype.copy$default$6:()Ljava/lang/String;
+      41: astore        7
+      43: aload_1
+      44: iload_3
+      45: aload         4
+      47: aload         5
+      49: aload         6
+      51: aload_2
+      52: aload         7
+      54: invokevirtual #89                 // Method com/vitorsvieira/dilate/BankAccountWithNewtype.copy:(ZLscala/math/BigInt;Lscala/math/BigDecimal;Ljava/lang/Object;Ljava/util/UUID;Ljava/lang/String;)Lcom/vitorsvieira/dilate/BankAccountWithNewtype;
+      57: areturn
+    LineNumberTable:
+      line 20: 3
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      58     0  this   Lcom/vitorsvieira/dilate/BankAccountWithNewtype$;
+          0      58     1 account   Lcom/vitorsvieira/dilate/BankAccountWithNewtype;
+         14      43     2   x$7   Ljava/util/UUID;
+         19      38     3   x$8   Z
+         25      32     4   x$9   Lscala/math/BigInt;
+         31      26     5  x$10   Lscala/math/BigDecimal;
+         37      20     6  x$11   Ljava/lang/Object;
+         43      14     7  x$12   Ljava/lang/String;
+
+  public com.vitorsvieira.dilate.BankAccountWithNewtype apply(java.lang.Object, scala.math.BigInt, scala.math.BigDecimal, scala.collection.Seq<scala.math.BigDecimal>, java.util.UUID, java.lang.String);
+    Code:
+       0: new           #66                 // class com/vitorsvieira/dilate/BankAccountWithNewtype
+       3: dup
+       4: iload_1
+       5: aload_2
+       6: aload_3
+       7: aload         4
+       9: aload         5
+      11: aload         6
+      13: invokespecial #102                // Method com/vitorsvieira/dilate/BankAccountWithNewtype."<init>":(ZLscala/math/BigInt;Lscala/math/BigDecimal;Ljava/lang/Object;Ljava/util/UUID;Ljava/lang/String;)V
+      16: areturn
+    LineNumberTable:
+      line 2: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      17     0  this   Lcom/vitorsvieira/dilate/BankAccountWithNewtype$;
+          0      17     1 activated   Z
+          0      17     2 number   Lscala/math/BigInt;
+          0      17     3 funds   Lscala/math/BigDecimal;
+          0      17     4 withdrawals   Ljava/lang/Object;
+          0      17     5 token   Ljava/util/UUID;
+          0      17     6 manager   Ljava/lang/String;
+
+  public scala.Option<scala.Tuple6<java.lang.Object, scala.math.BigInt, scala.math.BigDecimal, scala.collection.Seq<scala.math.BigDecimal>, java.util.UUID, java.lang.String>> unapply(com.vitorsvieira.dilate.BankAccountWithNewtype);
+    Code:
+       0: aload_1
+       1: ifnonnull     10
+       4: getstatic     #115                // Field scala/None$.MODULE$:Lscala/None$;
+       7: goto          51
+      10: new           #117                // class scala/Some
+      13: dup
+      14: new           #119                // class scala/Tuple6
+      17: dup
+      18: aload_1
+      19: invokevirtual #121                // Method com/vitorsvieira/dilate/BankAccountWithNewtype.activated:()Z
+      22: invokestatic  #127                // Method scala/runtime/BoxesRunTime.boxToBoolean:(Z)Ljava/lang/Boolean;
+      25: aload_1
+      26: invokevirtual #129                // Method com/vitorsvieira/dilate/BankAccountWithNewtype.number:()Lscala/math/BigInt;
+      29: aload_1
+      30: invokevirtual #131                // Method com/vitorsvieira/dilate/BankAccountWithNewtype.funds:()Lscala/math/BigDecimal;
+      33: aload_1
+      34: invokevirtual #133                // Method com/vitorsvieira/dilate/BankAccountWithNewtype.withdrawals:()Ljava/lang/Object;
+      37: aload_1
+      38: invokevirtual #135                // Method com/vitorsvieira/dilate/BankAccountWithNewtype.token:()Ljava/util/UUID;
+      41: aload_1
+      42: invokevirtual #137                // Method com/vitorsvieira/dilate/BankAccountWithNewtype.manager:()Ljava/lang/String;
+      45: invokespecial #140                // Method scala/Tuple6."<init>":(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+      48: invokespecial #143                // Method scala/Some."<init>":(Ljava/lang/Object;)V
+      51: areturn
+    LineNumberTable:
+      line 2: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      52     0  this   Lcom/vitorsvieira/dilate/BankAccountWithNewtype$;
+          0      52     1   x$0   Lcom/vitorsvieira/dilate/BankAccountWithNewtype;
+
+  public boolean $lessinit$greater$default$1();
+    Code:
+       0: getstatic     #152                // Field com/vitorsvieira/dilate/BankAccountWithNewtype$TaggedBoolean$.MODULE$:Lcom/vitorsvieira/dilate/BankAccountWithNewtype$TaggedBoolean$;
+       3: aload_0
+       4: iconst_1
+       5: invokevirtual #154                // Method TaggedBoolean:(Z)Z
+       8: invokevirtual #157                // Method com/vitorsvieira/dilate/BankAccountWithNewtype$TaggedBoolean$.activated$extension:(Z)Z
+      11: ireturn
+    LineNumberTable:
+      line 2: 3
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      12     0  this   Lcom/vitorsvieira/dilate/BankAccountWithNewtype$;
+
+  public boolean apply$default$1();
+    Code:
+       0: getstatic     #152                // Field com/vitorsvieira/dilate/BankAccountWithNewtype$TaggedBoolean$.MODULE$:Lcom/vitorsvieira/dilate/BankAccountWithNewtype$TaggedBoolean$;
+       3: aload_0
+       4: iconst_1
+       5: invokevirtual #154                // Method TaggedBoolean:(Z)Z
+       8: invokevirtual #157                // Method com/vitorsvieira/dilate/BankAccountWithNewtype$TaggedBoolean$.activated$extension:(Z)Z
+      11: ireturn
+    LineNumberTable:
+      line 2: 3
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      12     0  this   Lcom/vitorsvieira/dilate/BankAccountWithNewtype$;
+
+  private java.lang.Object readResolve();
+    Code:
+       0: getstatic     #161                // Field MODULE$:Lcom/vitorsvieira/dilate/BankAccountWithNewtype$;
+       3: areturn
+    LineNumberTable:
+      line 3: 0
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0       4     0  this   Lcom/vitorsvieira/dilate/BankAccountWithNewtype$;
+
+  private com.vitorsvieira.dilate.BankAccountWithNewtype$();
+    Code:
+       0: aload_0
+       1: invokespecial #162                // Method java/lang/Object."<init>":()V
+       4: aload_0
+       5: putstatic     #161                // Field MODULE$:Lcom/vitorsvieira/dilate/BankAccountWithNewtype$;
+       8: aload_0
+       9: ldc           #163                // String value
+      11: putfield      #39                 // Field field:Ljava/lang/String;
+      14: aload_0
+      15: iconst_1
+      16: putfield      #37                 // Field bitmap$init$0:Z
+      19: return
+    LineNumberTable:
+      line 22: 0
+      line 19: 8
+    LocalVariableTable:
+      Start  Length  Slot  Name   Signature
+          0      20     0  this   Lcom/vitorsvieira/dilate/BankAccountWithNewtype$;
+}
+```
 
 ### Intellij support
 

@@ -1,7 +1,10 @@
+import java.io.FileNotFoundException
+
 import sbt._
 import Keys._
 import de.heikoseeberger.sbtheader.HeaderPattern
 import de.heikoseeberger.sbtheader.license.Apache2_0
+
 import scalariform.formatter.preferences._
 import com.typesafe.sbt.SbtScalariform
 import sbtrelease._
@@ -74,7 +77,7 @@ lazy val commonSettings =
       "-feature",
       "-explaintypes",
       "-target:jvm-1.8",
-      "-language:_",
+      "-language:implicitConversions",
       "-Ydelambdafy:method",
       "-Xcheckinit",
       "-Xfuture",
@@ -206,5 +209,26 @@ lazy val publishSettings = Seq(
   )
 )
 
+// epic hack to get the tools.jar JDK dependency
+val JavaTools = List[Option[String]] (
+  // manual
+  sys.env.get("JDK_HOME"),
+  sys.env.get("JAVA_HOME"),
+  // osx
+  try Some("/usr/libexec/java_home".!!.trim)
+  catch {
+    case _: Throwable => None
+  },
+  // fallback
+  sys.props.get("java.home").map(new File(_).getParent),
+  sys.props.get("java.home")
+).flatten.map { n =>
+  new File(n + "/lib/tools.jar")
+}.find(_.exists).getOrElse (
+  throw new FileNotFoundException (
+    """Could not automatically find the JDK/lib/tools.jar.
+      |You must explicitly set JDK_HOME or JAVA_HOME.""".stripMargin
+  )
+)
 parallelExecution in Test := false
 fork in Test := true
