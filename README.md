@@ -217,9 +217,10 @@ This is required due to current limitations on macro whiteboxing.
 All the examples above are available in the `examples` folder.
 
 
+
 ### Intellij support
 
-scalameta support was introduced on Intellij 2016.3 and it is under heavy development, but this does not prevent us for using it. Of course, all issues found are being resolved by JetBrains Scala Plugin team.
+scalameta support was introduced on Intellij 2016.3 and it is under heavy development, but this does not prevent us from using it. Of course, all issues found are being resolved by JetBrains Scala Plugin team.
 
 More information about Intellij scalameta support [here](https://blog.jetbrains.com/scala/2016/11/11/intellij-idea-2016-3-rc-scala-js-scala-meta-and-more/)
 
@@ -237,6 +238,8 @@ While using the library you might notice like in the image below, that Intellij 
 One way to possibly mitigate this is to change the Scala plugin update channel to `EAP` or preferably `Nightly`.
 
 ![Scala plugin build](https://d3nmt5vlzunoa1.cloudfront.net/scala/files/2016/11/image06.png)
+
+
 
 ### References and Answers ##
 
