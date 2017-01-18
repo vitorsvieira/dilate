@@ -88,7 +88,6 @@ class ValueClassMacroSpec extends WordSpec {
   "a class using @valueclass" should {
 
     val uuid = java.util.UUID.fromString("673153b5-35b3-43bd-aa54-cea276130a48")
-
     val acc = BankAccount(
       number      = BankAccount.Number(123),
       funds       = BankAccount.Funds(123),

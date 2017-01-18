@@ -19,9 +19,9 @@ package com.vitorsvieira.dilate
 import org.scalatest._
 import Matchers._
 
-import BankAccount2._
-@newtype case class BankAccount2(
-    activated:     Boolean         = true.activated,
+import OtherBankAccount._
+@newtype case class OtherBankAccount(
+    activated:     Boolean         = true,
     number:        BigInt,
     funds:         BigDecimal,
     withdrawals:   Seq[BigDecimal],
@@ -32,10 +32,9 @@ import BankAccount2._
   def classMethod: BigDecimal = funds * 1000
 }
 
-object BankAccount2 {
+object OtherBankAccount {
   val field = "value"
-
-  def renew(account: BankAccount2) = account.copy(token = java.util.UUID.randomUUID().token)
+  def renew(account: OtherBankAccount) = account.copy(token = java.util.UUID.randomUUID().token)
 }
 
 class NewTypeMacroSpec extends WordSpec {
@@ -88,24 +87,23 @@ class NewTypeMacroSpec extends WordSpec {
   "a class using @newtype" should {
 
     val uuid = java.util.UUID.fromString("673153b5-35b3-43bd-aa54-cea276130a48")
-
-    val acc = BankAccount2(
-      false.activated,
-      BigInt(123).number,
-      BigDecimal(123).funds,
-      Seq(BigDecimal(123)).withdrawals,
-      uuid.token,
-      "test"
+    val acc: OtherBankAccount = OtherBankAccount(
+      //activated   = false.activated,
+      number      = BigInt(123).number,
+      funds       = BigDecimal(123).funds,
+      withdrawals = Seq(BigDecimal(123)).withdrawals,
+      token       = uuid.token,
+      manager     = "test"
     )
 
     "use the tagged types inside the companion object" in {
 
-      assert(acc.isInstanceOf[BankAccount2])
-      assert(acc.activated.isInstanceOf[BankAccount2.Activated])
-      assert(acc.number.isInstanceOf[BankAccount2.Number])
-      assert(acc.funds.isInstanceOf[BankAccount2.Funds])
-      assert(acc.withdrawals.isInstanceOf[BankAccount2.Withdrawals])
-      assert(acc.token.isInstanceOf[BankAccount2.Token])
+      assert(acc.isInstanceOf[OtherBankAccount])
+      assert(acc.activated.isInstanceOf[OtherBankAccount.Activated])
+      assert(acc.number.isInstanceOf[OtherBankAccount.Number])
+      assert(acc.funds.isInstanceOf[OtherBankAccount.Funds])
+      assert(acc.withdrawals.isInstanceOf[OtherBankAccount.Withdrawals])
+      assert(acc.token.isInstanceOf[OtherBankAccount.Token])
       assert(acc.manager.isInstanceOf[String])
     }
 
@@ -124,12 +122,12 @@ class NewTypeMacroSpec extends WordSpec {
 
     "have methods in the companion object still accessible after expansion/rewriting" in {
 
-      assert(BankAccount2.renew(acc) !== uuid)
+      assert(OtherBankAccount.renew(acc) !== uuid)
     }
 
     "have field members in the companion object still accessible after expansion/rewriting" in {
 
-      assert(BankAccount.field === "value")
+      assert(OtherBankAccount.field === "value")
     }
 
     "have methods in the class still accessible after expansion/rewriting" in {
@@ -151,9 +149,9 @@ class NewTypeMacroSpec extends WordSpec {
 
       val activated: Boolean = acc.activated
 
-      assert(activated === false)
-      assert(acc.activated === false.activated)
-      assert(acc.activated.isInstanceOf[BankAccount2.Activated])
+      assert(activated === true)
+      assert(acc.activated === true.activated)
+      assert(acc.activated.isInstanceOf[OtherBankAccount.Activated])
     }
   }
 }

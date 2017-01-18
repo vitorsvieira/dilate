@@ -37,7 +37,6 @@ final class newtype extends StaticAnnotation {
             result.template.implicitClasses ++:
             companion.templ.stats.getOrElse(Nil)
         ).toOption
-
         val newCompanion: Defn.Object = companion.copy(templ = companion.templ.copy(stats = templateStats))
 
         Term.Block(Seq(newClass, newCompanion))

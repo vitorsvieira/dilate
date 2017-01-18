@@ -5,13 +5,15 @@
 
 ### Overview
 Dilate is a library which provides macro annotations that generates value classes and unboxed tagged types on compile-time for extra type-safety focusing on nearly zero runtime overhead.
-Value classes and tagged types have an important role when developing high performance applications in Scala.
+Value classes and tagged types have an important role when developing high performance Scala applications.
+
+This project proudly uses [scalameta](https://github.com/scalameta/scalameta).
 
 ### Motivation
 
-- Type-safety and type checking
-- Avoid runtime object allocation
-- Zero syntactical and bytecode overhead
+  - Type-safety and type checking
+  - Avoid runtime object allocation
+  - Zero syntactical and bytecode overhead
 
 ### Getting Started
 
@@ -49,9 +51,11 @@ Applying `@valueclass` to the `BankAccount` class as below:
 object BankAccount {
   def renew(account: BankAccount) = account.copy(token = java.util.UUID.randomUUID())
 }
+```
 
+Allows `BankAccount` to be instantiated using the new types as: 
 
-//can be instantiated as below
+```scala
 val account = BankAccount(
   BankAccount.Number(1234),
   BankAccount.Funds(10),
@@ -60,7 +64,7 @@ val account = BankAccount(
 )
 ```
 
-The above construction can be done as the types(value classes), and implicit conversions are generated on compile-time.
+The above construction is possible as the following types(value classes) and implicit conversions are generated at compile-time.
 
 ```scala
 case class BankAccount(
@@ -94,27 +98,27 @@ object BankAccount {
 
 #### @valueclass with @hold
 
-Applying `@valueclass` to the `Person` class as below:
+`@hold` allows keeping the type without any modification. Applying `@valueclass` to the `Person` class as below:
 
 ```scala
 case class Age(value: Int) extends AnyVal
 
 @valueclass final class Person(
   v1:           Boolean,
-  @hold v2:     Age                 = Age(1),
+  @hold v2:     Age                 = Age(1),//will hold Age as is
   v3:           Int                 = 1,
   v4:           Int,
   bankAccount: BankAccount.Number)
 ```
 
-Generates the following types as value classes, and implicit conversions on compile-time.
+Generates the following types as value classes, and implicit conversions at compile-time.
 
 ```scala
 sealed class Person(
-  v1: Person.V1,
-  v2: Age = Age(1),
-  v3: Person.V3 = Person.V3(1),
-  v4: Person.V4,
+  v1:          Person.V1,
+  v2:          Age          = Age(1),        //held the type Age from the above value class 
+  v3:          Person.V3    = Person.V3(1),
+  v4:          Person.V4,
   bankAccount: BankAccount.Number)
   
 object Person {
@@ -140,7 +144,7 @@ Applying `@newtype` to the `BankAccount` class as below:
 ```scala
 import BankAccount._
 @newtype case class BankAccount(
-  activated:     Boolean           = true.activated,
+  activated:     Boolean           = true,
   number:        BigInt,
   funds:         BigDecimal,
   withdrawals:   Seq[BigDecimal],
@@ -148,17 +152,31 @@ import BankAccount._
   @hold manager: String)
 ```
 
-Generates the following `Unboxed Tagged Types` and implicit conversions on compile-time.
+Allows `BankAccount` to be created like:
+
+```scala
+val bankAccount2 = OtherBankAccount(
+  number      = BigInt(10).number,
+  funds       = BigDecimal(10).funds,
+  withdrawals = Seq(BigDecimal(10)).withdrawals,
+  token       = java.util.UUID.randomUUID().token,
+  manager     = "test"
+)
+```
+Due to current limitations in the [whiteboxing](http://docs.scala-lang.org/overviews/macros/blackbox-whitebox.html) architecture, only when using `@newtype` macro, the construction must have named arguments.
+
+
+The above construction is possible as the following `Unboxed Tagged Types` and implicit classes are generated at compile-time.
 
 ```scala
 import BankAccount._
 case class BankAccount(
-  activated: BankAccount.Activated = true.activated,
-  number: BankAccount.Number, 
-  funds: BankAccount.Funds,
+  activated:   BankAccount.Activated   = true.activated,
+  number:      BankAccount.Number, 
+  funds:       BankAccount.Funds,
   withdrawals: BankAccount.Withdrawals,
-  token: BankAccount.Token,
-  manager: String)
+  token:       BankAccount.Token,
+  manager:     String)
   
 object BankAccount {
   trait ActivatedTag
@@ -167,11 +185,11 @@ object BankAccount {
   trait WithdrawalsTag
   trait TokenTag
   
-  type Activated = Boolean @@ ActivatedTag
-  type Number = BigInt @@ NumberTag
-  type Funds = BigDecimal @@ FundsTag
+  type Activated   = Boolean         @@ ActivatedTag
+  type Number      = BigInt          @@ NumberTag
+  type Funds       = BigDecimal      @@ FundsTag
   type Withdrawals = Seq[BigDecimal] @@ WithdrawalsTag
-  type Token = java.util.UUID @@ TokenTag
+  type Token       = java.util.UUID  @@ TokenTag
   
   implicit class TaggedBoolean(val value: Boolean) extends AnyVal { 
     def activated: Activated = value.asInstanceOf[Activated] 
@@ -188,18 +206,15 @@ object BankAccount {
   implicit class TaggedjavautilUUID(val value: java.util.UUID) extends AnyVal { 
     def token: Token = value.asInstanceOf[Token] 
   }
-  
-  val field = "value"
-  def renew(account: BankAccount) = account.copy(token = java.util.UUID.randomUUID().token)
 }
 ```
 
 
 Note that in the example above `import BankAccount._` is presented. 
-This is required when using `@newtype` annotation only and for classes with default values and/or companion objects with values looking for implicit conversion.
+This is required only when using `@newtype` annotation and specially for classes with default values and/or companion objects with values looking for implicit conversion.
 This is required due to current limitations on macro whiteboxing.
 
-You can find the examples above in the `examples` folder.
+All the examples above are available in the `examples` folder.
 
 
 ### References and Answers ##

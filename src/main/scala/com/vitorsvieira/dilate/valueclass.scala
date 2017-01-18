@@ -26,7 +26,7 @@ final class valueclass extends StaticAnnotation {
   inline def apply(defn: Any): Any = meta {
     defn match {
       case Term.Block(Seq(cls@Defn.Class(_, name, _, ctor, _), companion: Defn.Object)) ⇒
-        val result       = Dilate.valueclassApply(name, ctor.paramss)
+        val result = Dilate.valueclassApply(name, ctor.paramss)
         val newClass: Defn.Class = cls.copy(
           ctor = Ctor.Primary.apply(ctor.mods, ctor.name, result.domain.finalArgs)
         )
@@ -36,14 +36,9 @@ final class valueclass extends StaticAnnotation {
             result.template.implicitDefs ++:
             companion.templ.stats.getOrElse(Nil)
         ).toOption
-
         val newCompanion: Defn.Object = companion.copy(templ = companion.templ.copy(stats = templateStats))
 
-        val block = Term.Block(Seq(newClass, newCompanion))
-
-        println(s"with companion\n$block\n")
-
-        block
+        Term.Block(Seq(newClass, newCompanion))
       case cls@Defn.Class(_, name, _, ctor, _)                                          ⇒
         val result: ExtractionResult = Dilate.valueclassApply(name, ctor.paramss)
         val newClass: Defn.Class = cls.copy(
@@ -56,11 +51,7 @@ final class valueclass extends StaticAnnotation {
             ..${result.template.implicitDefs}
           }"""
 
-        val block = Term.Block(Seq(newClass, newCompanion))
-
-        println(s"without companion\n$block\n")
-
-        block
+        Term.Block(Seq(newClass, newCompanion))
       case _ ⇒
         println(defn.structure)
         abort("@valueclass must annotate a class.")

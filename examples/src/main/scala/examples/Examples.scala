@@ -24,29 +24,47 @@ object Examples extends App {
    *
    * Please refer to the readme for more information.
    */
-  @valueclass case class BankAccount1(
-      number:      BigInt          = 10,
-      funds:       BigDecimal,
-      withdrawals: Seq[BigDecimal],
-      token:       java.util.UUID) {
+  @valueclass case class BankAccount(
+      activated:     Boolean         = true,
+      number:        BigInt,
+      funds:         BigDecimal,
+      withdrawals:   Seq[BigDecimal],
+      token:         java.util.UUID,
+      @hold manager: String) {
 
-    def methodA = number * 1000
+    val classField = "value"
+    def classMethod: BigDecimal = funds * 1000
   }
 
-  object BankAccount1 {
-    def renew(account: BankAccount1) = account.copy(token = java.util.UUID.randomUUID())
+  object BankAccount {
+
+    val field = "value"
+    def renew(bankAccount: BankAccount) =
+      bankAccount.copy(token = java.util.UUID.randomUUID())
   }
+
+  val bankAccount1 = BankAccount(
+    number      = BankAccount.Number(123),
+    funds       = BankAccount.Funds(123),
+    withdrawals = BankAccount.Withdrawals(Seq(123)),
+    token       = BankAccount.Token(java.util.UUID.randomUUID()),
+    manager     = "Scala"
+  )
+
+  println(s"bankAccount1: $bankAccount1")
+  //prints: bankAccount1: BankAccount(Activated(true),Number(123),Funds(123),Withdrawals(List(123)),Token(d42906a7-21f0-48bb-acd7-85673541d7ee),Scala)
+
 
   /**
    * This example uses @newtype to provide type-safety and `zero runtime allocation`.
-   * Notice the object import on top of the class.
-   * This import is temporarily required to provide default argument values
+   * Notice the import on top of the class.
+   * This import is temporarily required to provide default argument values in the class
    * using the implicit conversion generated inside the object.
    *
    * Please refer to the readme for more information.
    */
-  import BankAccount2._
-  @newtype case class BankAccount2(
+  import OtherBankAccount._
+  @newtype case class OtherBankAccount(
     activated:     Boolean         = true,
     number:        BigInt,
     funds:         BigDecimal,
@@ -54,28 +72,29 @@ object Examples extends App {
     token:         java.util.UUID,
     @hold manager: String)
 
-  object BankAccount2 {
-    val field = "value"
-
-    def renew(account: BankAccount2) = account.copy(token = java.util.UUID.randomUUID().token)
+  object OtherBankAccount {
+    val field: String = "value"
+    def renew(account: OtherBankAccount) = account.copy(token = java.util.UUID.randomUUID().token)
   }
 
-  val account2 = BankAccount2(
-    false.activated,
-    BigInt(10).number,
-    BigDecimal(10).funds,
-    Seq(BigDecimal(10)).withdrawals,
-    java.util.UUID.randomUUID().token,
-    "test"
+  /* @newtype requires named arguments.*/
+  val bankAccount2 = OtherBankAccount(
+    number      = BigInt(10).number,
+    funds       = BigDecimal(10).funds,
+    withdrawals = Seq(BigDecimal(10)).withdrawals,
+    token       = java.util.UUID.randomUUID().token,
+    manager     = "test"
   )
 
-  val isActivated: BankAccount2.Activated = true.activated
-  val number: BankAccount2.Number = BigInt(10).number
-  val funds: BankAccount2.Funds = BigDecimal(10).funds
-  val withdrawals: BankAccount2.Withdrawals = Seq(BigDecimal(10)).withdrawals
-  val token: BankAccount2.Token = java.util.UUID.randomUUID().token
+  //Example of how to use the type conversion
+  val isActivated: OtherBankAccount.Activated = true.activated
+  val number: OtherBankAccount.Number = BigInt(10).number
+  val funds: OtherBankAccount.Funds = BigDecimal(10).funds
+  val withdrawals: OtherBankAccount.Withdrawals = Seq(BigDecimal(10)).withdrawals
+  val token: OtherBankAccount.Token = java.util.UUID.randomUUID().token
 
-  println(account2)
+  println(s"bankAccount2: $bankAccount2")
+  //prints: bankAccount2: OtherBankAccount(true,10,10,List(10),bfbcd8e2-8a65-43ee-a5e0-5fdf9f93ccde,test)
 
   /**
    * This example shows a class using an external value class as an argument
@@ -92,10 +111,9 @@ object Examples extends App {
 
   @valueclass sealed class Person(
     v1:           Boolean,
-    @hold v2:     Age                 = Age(1),
-    v3:           Int                 = 1,
+    @hold v2:     Age                     = Age(1),
+    v3:           Int                     = 1,
     v4:           Int,
-    bankAccount1: BankAccount1.Number,
-    bankAccount2: BankAccount1.Number)
-
+    bankAccount1: BankAccount.Number,
+    bankAccount2: OtherBankAccount.Number)
 }
