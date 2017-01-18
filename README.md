@@ -4,7 +4,7 @@
 [![Software License](https://img.shields.io/badge/license-Apache 2-brightgreen.svg?style=flat)](LICENSE)
 
 ### Overview
-Dilate is a library which provides macro annotations that generates value classes and unboxed tagged types on compile-time for extra type-safety focusing on nearly zero runtime overhead.
+Dilate provides macro annotations that generates value classes and unboxed tagged types at compile-time for extra type-safety focusing on nearly zero runtime overhead.
 Value classes and tagged types have an important role when developing high performance Scala applications.
 
 This project proudly uses [scalameta](https://github.com/scalameta/scalameta).
@@ -20,7 +20,7 @@ This project proudly uses [scalameta](https://github.com/scalameta/scalameta).
 To get started with SBT, simply add the following to your `build.sbt` file:
 
 ```scala
-libraryDependencies += "com.vitorsvieira" %% "dilate" % "0.1.0"
+libraryDependencies += "com.vitorsvieira" %% "dilate" % "0.1.1"
 
 resolvers += Resolver.bintrayIvyRepo("scalameta", "maven")
 
