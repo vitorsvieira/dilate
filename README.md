@@ -232,7 +232,7 @@ Build #IC-163.10154.41, built on December 21, 2016
 
 While using the library you might notice like in the image below, that Intellij sometimes will not resolve the types and/or autocompletion. This is a combined issue from Intellij and paradise plugin. 
 
-![Intellij Screenshot 01](examples/resources/intellij01.png)
+![Intellij Screenshot 01](examples/src/main/resources/intellij01.png)
 
 One way to possibly mitigate this is to change the Scala plugin update channel to `EAP` or preferably `Nightly`.
 
