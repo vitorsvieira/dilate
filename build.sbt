@@ -8,8 +8,6 @@ import sbtrelease._
 import ReleaseTransformations._
 import sbtrelease.ReleasePlugin._
 import ReleaseStateTransformations._
-import xerial.sbt.Sonatype._
-import SonatypeKeys._
 import com.typesafe.sbt.pgp.PgpKeys
 
 // *****************************************************************************
@@ -65,10 +63,8 @@ lazy val commonSettings =
   Seq(
     organization := "com.vitorsvieira",
     scalaVersion := "2.11.8",
-    homepage     := Some(url("https://github.com/vitorsvieira/dilate")),
     crossScalaVersions := Seq(scalaVersion.value, "2.11.8"),
     crossVersion := CrossVersion.binary,
-    licenses += ("Apache 2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
     mappings.in(Compile, packageBin) +=
       baseDirectory.in(ThisBuild).value / "LICENSE" -> "LICENSE",
     scalacOptions ++= Seq(
@@ -153,11 +149,6 @@ lazy val dontPublishSettings = Seq(
 
 lazy val publishSettings = Seq(
   credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
-
-  publishMavenStyle := true,
-  publishArtifact in Test := false,
-  pomIncludeRepository := { _ => false },
-
   publishTo <<= version.apply {
     v =>
       val nexus = "https://oss.sonatype.org/"
@@ -167,11 +158,18 @@ lazy val publishSettings = Seq(
         Some("releases" at nexus + "service/local/staging/deploy/maven2")
       }
   },
+
   externalResolvers <<= resolvers map { rs =>
     Resolver.withDefaultResolvers(rs, mavenCentral = true)
   },
-  licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
 
+  // Release settings
+  publishMavenStyle := true,
+  pomIncludeRepository := { _ => false },
+  releaseCrossBuild             := true,
+  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+  publishMavenStyle             := true,
+  publishArtifact in Test       := false,
   pomExtra := {
     <url>https://github.com/vitorsvieira/dilate</url>
       <licenses>
@@ -201,8 +199,7 @@ lazy val publishSettings = Seq(
     setReleaseVersion,
     commitReleaseVersion,
     tagRelease,
-    ReleaseStep(action = Command.process("publishSigned", _), enableCrossBuild = true),
-    ReleaseStep(action = Command.process("sonatypeReleaseAll", _), enableCrossBuild = true),
+    publishArtifacts,
     setNextVersion,
     commitNextVersion,
     pushChanges
