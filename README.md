@@ -34,7 +34,7 @@ scalacOptions += "-Xplugin-require:macroparadise"
 
 ### Examples
 
-#### @valueclass
+### @valueclass
 
 Applying `@valueclass` to the `BankAccount` class as below:
 
@@ -96,7 +96,7 @@ object BankAccount {
 }
 ```
 
-#### @valueclass with @hold
+### @valueclass with @hold
 
 `@hold` allows keeping the type without any modification. Applying `@valueclass` to the `Person` class as below:
 
@@ -137,7 +137,7 @@ object Person {
 }
 ```
 
-#### @newtype
+### @newtype
 
 Applying `@newtype` to the `BankAccount` class as below:
 
@@ -216,6 +216,27 @@ This is required due to current limitations on macro whiteboxing.
 
 All the examples above are available in the `examples` folder.
 
+
+### Intellij support
+
+scalameta support was introduced on Intellij 2016.3 and it is under heavy development, but this does not prevent us for using it. Of course, all issues found are being resolved by JetBrains Scala Plugin team.
+
+More information about Intellij scalameta support [here](https://blog.jetbrains.com/scala/2016/11/11/intellij-idea-2016-3-rc-scala-js-scala-meta-and-more/)
+
+This project was built using the following version: 
+
+```
+IntelliJ IDEA 2016.3.2
+Build #IC-163.10154.41, built on December 21, 2016
+```
+
+While using the library you might notice like in the image below, that Intellij sometimes will not resolve the types and/or autocompletion. This is a combined issue from Intellij and paradise plugin. 
+
+![Intellij Screenshot 01](examples/resources/intellij01.png)
+
+One way to possibly mitigate this is to change the Scala plugin update channel to `EAP` or preferably `Nightly`.
+
+![Scala plugin build](https://d3nmt5vlzunoa1.cloudfront.net/scala/files/2016/11/image06.png)
 
 ### References and Answers ##
 
