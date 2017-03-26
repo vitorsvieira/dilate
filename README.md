@@ -1,7 +1,7 @@
 ## Dilate
 
 [![Build Status](https://travis-ci.org/vitorsvieira/dilate.svg?branch=master)](https://travis-ci.org/vitorsvieira/dilate)
-[![Software License](https://img.shields.io/badge/license-Apache 2-brightgreen.svg?style=flat)](LICENSE)
+[![Software License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg?style=flat)](LICENSE)
 
 ### Overview
 Dilate provides macro annotations that generates value classes and unboxed tagged types at compile-time for extra type-safety focusing on nearly zero runtime overhead.
