@@ -25,7 +25,7 @@ import scala.util.Try
 final class valueclass extends StaticAnnotation {
   inline def apply(defn: Any): Any = meta {
     defn match {
-      case Term.Block(Seq(cls@Defn.Class(_, name, _, ctor, _), companion: Defn.Object)) ⇒
+      case Term.Block(Seq(cls@Defn.Class(_, name, _, ctor, _), companion: Defn.Object)) =>
         val result = Dilate.valueclassApply(name, ctor.paramss)
         val newClass: Defn.Class = cls.copy(
           ctor = Ctor.Primary.apply(ctor.mods, ctor.name, result.domain.finalArgs)
@@ -39,7 +39,7 @@ final class valueclass extends StaticAnnotation {
         val newCompanion: Defn.Object = companion.copy(templ = companion.templ.copy(stats = templateStats))
 
         Term.Block(Seq(newClass, newCompanion))
-      case cls@Defn.Class(_, name, _, ctor, _)                                          ⇒
+      case cls@Defn.Class(_, name, _, ctor, _)                                          =>
         val result: ExtractionResult = Dilate.valueclassApply(name, ctor.paramss)
         val newClass: Defn.Class = cls.copy(
           ctor = Ctor.Primary.apply(ctor.mods, ctor.name, result.domain.finalArgs)
@@ -52,7 +52,7 @@ final class valueclass extends StaticAnnotation {
           }"""
 
         Term.Block(Seq(newClass, newCompanion))
-      case _ ⇒
+      case _ =>
         println(defn.structure)
         abort("@valueclass must annotate a class.")
     }

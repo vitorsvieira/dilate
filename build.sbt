@@ -44,7 +44,7 @@ lazy val examples = project.in(file("examples"))
 lazy val library =
   new {
     object Version {
-      val scalaMeta  = "1.4.0"
+      val scalaMeta  = "1.8.0"
       val scalaCheck = "1.13.4"
       val scalaTest  = "3.0.1"
     }
@@ -65,8 +65,8 @@ lazy val settings =
 lazy val commonSettings =
   Seq(
     organization := "com.vitorsvieira",
-    scalaVersion := "2.11.8",
-    crossScalaVersions := Seq(scalaVersion.value, "2.11.8"),
+    scalaVersion := "2.12.3",
+    crossScalaVersions := Seq(scalaVersion.value, "2.11.11"),
     crossVersion := CrossVersion.binary,
     mappings.in(Compile, packageBin) +=
       baseDirectory.in(ThisBuild).value / "LICENSE" -> "LICENSE",
@@ -109,7 +109,7 @@ lazy val commonSettings =
     // new-style macros.  This is similar to how it works for old-style macro
     // annotations and a dependency on macro paradise 2.x.
     addCompilerPlugin(
-      "org.scalameta" % "paradise" % "3.0.0-beta4" cross CrossVersion.full),
+      "org.scalameta" % "paradise" % "3.0.0-M10" cross CrossVersion.full),
     scalacOptions += "-Xplugin-require:macroparadise",
     // temporary workaround for https://github.com/scalameta/paradise/issues/10
     scalacOptions in (Compile, console) := Seq(), // macroparadise plugin doesn't work in repl yet.
@@ -232,3 +232,4 @@ val JavaTools = List[Option[String]] (
 )
 parallelExecution in Test := false
 fork in Test := true
+
