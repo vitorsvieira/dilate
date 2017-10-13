@@ -95,8 +95,8 @@ object Dilate {
   /* Splits Ctor.Primary params(class arguments) between implicits and non-implicits */
   private[this] def partitionArgs(params: Seq[Seq[Term.Param]]): OwnerClassArgsSplitted = {
     val p = params.flatten.partition {
-      case Term.Param(Seq(Mod.Implicit()), _, _, _) ⇒ false
-      case _                                        ⇒ true
+      case Term.Param(Seq(Mod.Implicit()), _, _, _) => false
+      case _                                        => true
     }
     OwnerClassArgsSplitted(p._1, p._2)
   }
@@ -106,11 +106,11 @@ object Dilate {
     ownerClassName: Type.Name,
     params:         Seq[Term.Param]
   )(implicit domain: Domain): Seq[Extraction] =
-    params.map { implicit param: Term.Param ⇒
+    params.map { implicit param: Term.Param =>
       //debugParam(param) //DEBUG
       param.decltpe match {
         // match A.B
-        case Some(quasi @ Type.Select(Term.Name(_), Type.Name(_))) ⇒
+        case Some(quasi @ Type.Select(Term.Name(_), Type.Name(_))) =>
           Extraction(
             newArgs = Term.Param(
               param.mods,
@@ -121,21 +121,21 @@ object Dilate {
           )
 
         // Match a.F[_*], a.b.F[_*], a.b..z.F[_*]
-        case Some(quasi @ Type.Apply(Type.Select(namespace, Type.Name(name: String)), Seq(_*))) ⇒
+        case Some(quasi @ Type.Apply(Type.Select(namespace, Type.Name(name: String)), Seq(_*))) =>
           val path = getPath(s"${namespace.syntax}.$name", quasi.args.map(_.toString()))
           extraction(ownerClassName, path)
 
         // Match F[_*]
-        case Some(quasi @ Type.Apply(Type.Name(name: String), Seq(_*))) ⇒
+        case Some(quasi @ Type.Apply(Type.Name(name: String), Seq(_*))) =>
           val path = getPath(name, quasi.args.map(_.toString()))
           extraction(ownerClassName, path)
 
         // Match tuple syntactic sugar (_), (_, _), (_, _, ...)
-        case Some(quasi @ Type.Tuple(Seq(_*))) ⇒
+        case Some(quasi @ Type.Tuple(Seq(_*))) =>
           val path = getPath(s"Tuple${quasi.args.length}", quasi.args.map(_.toString()))
           extraction(ownerClassName, path)
 
-        case _ ⇒
+        case _ =>
           extraction(ownerClassName, param.decltpe.fold("Any")(_.syntax))
       }
     }
@@ -143,15 +143,15 @@ object Dilate {
   /* Hold args types with @hold annotation in the owner class*/
   private[this] def extraction(ownerClassName: Type.Name, path: String)(implicit domain: Domain, param: Term.Param) =
     (param, domain) match {
-      case (Term.Param(mods, _, _, _), _) if mods.exists(m ⇒ m.syntax == "@hold") ⇒
-        Extraction(newArgs = param.copy(mods = param.mods.filter(m ⇒ m.syntax != "@hold")))
-      case (_, ValueClass) ⇒
+      case (Term.Param(mods, _, _, _), _) if mods.exists(m => m.syntax == "@hold") =>
+        Extraction(newArgs = param.copy(mods = param.mods.filter(m => m.syntax != "@hold")))
+      case (_, ValueClass) =>
         Extraction(
           newArgs     = buildOwnerClassArgs(ownerClassName),
           valueclass  = buildValueClass(Type.Name(path)),
           implicitDef = buildImplicitDef(ownerClassName)
         )
-      case (_, NewType) ⇒
+      case (_, NewType) =>
         Extraction(
           newArgs = buildOwnerClassArgs(ownerClassName),
           traitT  = buildTrait,
@@ -166,7 +166,7 @@ object Dilate {
       name    = Term.Name(param.name.value),
       decltpe = Some(Type.Name(s"$typeName.${param.name.value.capitalize}")),
       default = param.default.map(
-        term ⇒ q"""${Ctor.Ref.Name(s"$typeName.${param.name.value.capitalize}")}($term)"""
+        term => q"""${Ctor.Ref.Name(s"$typeName.${param.name.value.capitalize}")}($term)"""
       )
     )
     case NewType => Term.Param(
@@ -174,7 +174,7 @@ object Dilate {
       name    = Term.Name(param.name.value),
       decltpe = Some(Type.Name(s"$typeName.${param.name.value.capitalize}")),
       default = param.default.map(
-        term ⇒ q"""$term.${Term.Name(param.name.value.head.toLower + param.name.value.tail)}"""
+        term => q"""$term.${Term.Name(param.name.value.head.toLower + param.name.value.tail)}"""
       )
     )
   }
@@ -264,7 +264,7 @@ object Dilate {
   private[this] def buildImplicitClass(extractions: Seq[Extraction]): Seq[Defn.Class] = {
 
     val types = extractions.flatMap(_.typeT).map {
-      case q"type ${ name } = ${ tpe } @@ $_" ⇒
+      case q"type ${ name } = ${ tpe } @@ $_" =>
         val conversion =
           q"""
           def ${
@@ -274,42 +274,42 @@ object Dilate {
         (tpe, conversion)
     }
 
-    types.map(t ⇒ t._1.syntax).distinct.map { tpe ⇒
+    types.map(t => t._1.syntax).distinct.map { tpe =>
       q"""implicit class ${
         Type.Name(s"Tagged${tpe.replaceAll("[^a-zA-Z0-9]", "")}")
       }(val value: ${Type.Name(tpe)}) extends AnyVal{
-            ..${types.filter(t ⇒ t._1.syntax == tpe).map(_._2)}
+            ..${types.filter(t => t._1.syntax == tpe).map(_._2)}
       }"""
     }
   }
 
   /* return opinionated F[_] path */
   private[this] def getPath(f: String, args: Seq[String]) = f match {
-    case "Option"           ⇒ s"_root_.scala.Option[${args.head}]"
-    case "Some"             ⇒ s"_root_.scala.Some[${args.head}]"
-    case "List"             ⇒ s"_root_.scala.collection.immutable.List[${args.head}]"
-    case "Seq"              ⇒ s"_root_.scala.collection.Seq[${args.head}]"
-    case "Map"              ⇒ s"_root_.scala.collection.Map[${args.mkString(",")}]"
-    case "Set"              ⇒ s"_root_.scala.collection.immutable.Set[${args.head}]"
-    case "IndexedSeq"       ⇒ s"_root_.scala.collection.IndexedSeq[${args.head}]"
-    case "Iterator"         ⇒ s"_root_.scala.collection.Iterator[${args.head}]"
-    case "BufferedIterator" ⇒ s"_root_.scala.collection.BufferedIterator[${args.head}]"
-    case "TraversableOnce"  ⇒ s"_root_.scala.collection.TraversableOnce[${args.head}]"
-    case "Traversable"      ⇒ s"_root_.scala.collection.Traversable[${args.head}]"
-    case "Iterable"         ⇒ s"_root_.scala.collection.Iterable[${args.head}]"
-    case "Stream"           ⇒ s"_root_.scala.collection.immutable.Stream[${args.head}]"
-    case "Vector"           ⇒ s"_root_.scala.collection.immutable.Vector[${args.head}]"
-    case "Equiv"            ⇒ s"_root_.scala.math.Equiv[${args.head}]"
-    case "Fractional"       ⇒ s"_root_.scala.math.Fractional[${args.head}]"
-    case "Integral"         ⇒ s"_root_.scala.math.Integral[${args.head}]"
-    case "Numeric"          ⇒ s"_root_.scala.math.Numeric[${args.head}]"
-    case "Ordered"          ⇒ s"_root_.scala.math.Ordered[${args.head}]"
-    case "Ordering"         ⇒ s"_root_.scala.math.Ordering[${args.head}]"
-    case "PartialOrdering"  ⇒ s"_root_.scala.math.PartialOrdering[${args.head}]"
-    case "PartiallyOrdered" ⇒ s"_root_.scala.math.PartiallyOrdered[${args.head}]"
-    case "Either"           ⇒ s"_root_.scala.util.Either[${args.mkString(",")}]"
-    case "Left"             ⇒ s"_root_.scala.util.Left[${args.mkString(",")}]"
-    case "Right"            ⇒ s"_root_.scala.util.Right[${args.mkString(",")}]"
-    case c                  ⇒ s"$c[${args.mkString(",")}]"
+    case "Option"           => s"_root_.scala.Option[${args.head}]"
+    case "Some"             => s"_root_.scala.Some[${args.head}]"
+    case "List"             => s"_root_.scala.collection.immutable.List[${args.head}]"
+    case "Seq"              => s"_root_.scala.collection.Seq[${args.head}]"
+    case "Map"              => s"_root_.scala.collection.Map[${args.mkString(",")}]"
+    case "Set"              => s"_root_.scala.collection.immutable.Set[${args.head}]"
+    case "IndexedSeq"       => s"_root_.scala.collection.IndexedSeq[${args.head}]"
+    case "Iterator"         => s"_root_.scala.collection.Iterator[${args.head}]"
+    case "BufferedIterator" => s"_root_.scala.collection.BufferedIterator[${args.head}]"
+    case "TraversableOnce"  => s"_root_.scala.collection.TraversableOnce[${args.head}]"
+    case "Traversable"      => s"_root_.scala.collection.Traversable[${args.head}]"
+    case "Iterable"         => s"_root_.scala.collection.Iterable[${args.head}]"
+    case "Stream"           => s"_root_.scala.collection.immutable.Stream[${args.head}]"
+    case "Vector"           => s"_root_.scala.collection.immutable.Vector[${args.head}]"
+    case "Equiv"            => s"_root_.scala.math.Equiv[${args.head}]"
+    case "Fractional"       => s"_root_.scala.math.Fractional[${args.head}]"
+    case "Integral"         => s"_root_.scala.math.Integral[${args.head}]"
+    case "Numeric"          => s"_root_.scala.math.Numeric[${args.head}]"
+    case "Ordered"          => s"_root_.scala.math.Ordered[${args.head}]"
+    case "Ordering"         => s"_root_.scala.math.Ordering[${args.head}]"
+    case "PartialOrdering"  => s"_root_.scala.math.PartialOrdering[${args.head}]"
+    case "PartiallyOrdered" => s"_root_.scala.math.PartiallyOrdered[${args.head}]"
+    case "Either"           => s"_root_.scala.util.Either[${args.mkString(",")}]"
+    case "Left"             => s"_root_.scala.util.Left[${args.mkString(",")}]"
+    case "Right"            => s"_root_.scala.util.Right[${args.mkString(",")}]"
+    case c                  => s"$c[${args.mkString(",")}]"
   }
 }
