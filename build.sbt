@@ -147,8 +147,6 @@ lazy val publishSettings = Seq(
       Some("releases"  at nexus + "service/local/staging/deploy/maven2")
   },
 
-  //externalResolvers := resolvers.value,
-
   // Release settings
   publishMavenStyle             := true,
   publishArtifact in Test       := false,
@@ -165,10 +163,6 @@ lazy val publishSettings = Seq(
           <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
       </licenses>
-      <scm>
-        <url>git@github.com:vitorsvieira/dilate.git</url>
-        <connection>scm:git:git@github.com:vitorsvieira/dilate.git</connection>
-      </scm>
       <developers>
         <developer>
           <id>vitorsvieira</id>
