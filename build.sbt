@@ -147,7 +147,7 @@ lazy val publishSettings = Seq(
       Some("releases"  at nexus + "service/local/staging/deploy/maven2")
   },
 
-  externalResolvers := resolvers.value,
+  //externalResolvers := resolvers.value,
 
   // Release settings
   publishMavenStyle             := true,
