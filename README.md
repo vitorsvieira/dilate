@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/vitorsvieira/dilate.svg?branch=master)](https://travis-ci.org/vitorsvieira/dilate)
 [![Software License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg?style=flat)](LICENSE)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.vitorsvieira/dilate_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.vitorsvieira/dilate_2.11)
 
 ### Overview
 Dilate provides macro annotations that generates value classes and unboxed tagged types at compile-time for extra type-safety focusing on nearly zero runtime overhead.
@@ -20,7 +21,7 @@ This project proudly uses [scalameta](https://github.com/scalameta/scalameta).
 To get started with SBT, simply add the following to your `build.sbt` file:
 
 ```scala
-libraryDependencies += "com.vitorsvieira" %% "dilate" % "0.1.1"
+libraryDependencies += "com.vitorsvieira" %% "dilate" % "0.1.2"
 
 resolvers += Resolver.bintrayIvyRepo("scalameta", "maven")
 
