@@ -24,31 +24,31 @@ sealed trait ClassParamAnnotation extends StaticAnnotation
 final class hold extends ClassParamAnnotation
 
 final private[dilate] case class ExtractionResult(
-  template: CompanionObjectTemplate,
-  domain:   OwnerClassArgs)
+    template: CompanionObjectTemplate,
+    domain:   OwnerClassArgs)
 
 final private[dilate] case class CompanionObjectTemplate(
-  valueclasses:    Seq[Defn.Class] = Seq.empty,
-  traits:          Seq[Defn.Trait] = Seq.empty,
-  types:           Seq[Defn.Type]  = Seq.empty,
-  implicitClasses: Seq[Defn.Class] = Seq.empty,
-  implicitDefs:    Seq[Defn.Def]   = Seq.empty
+    valueclasses:    Seq[Defn.Class] = Seq.empty,
+    traits:          Seq[Defn.Trait] = Seq.empty,
+    types:           Seq[Defn.Type]  = Seq.empty,
+    implicitClasses: Seq[Defn.Class] = Seq.empty,
+    implicitDefs:    Seq[Defn.Def]   = Seq.empty
 )
 
 final private[dilate] case class OwnerClassArgs(finalArgs: Seq[Seq[Term.Param]] = Seq.empty)
 
 final private[dilate] case class OwnerClassArgsSplitted(
-  nonImplicitArgs: Seq[Term.Param],
-  implicitArgs:    Seq[Term.Param])
+    nonImplicitArgs: Seq[Term.Param],
+    implicitArgs:    Seq[Term.Param])
 
 final private[dilate] case class ExtractionPreResult(
-  extraction: Seq[Extraction],
-  newArgs:    OwnerClassArgs)
+    extraction: Seq[Extraction],
+    newArgs:    OwnerClassArgs)
 
 final private[dilate] case class Extraction(
-  newArgs:     Term.Param,
-  valueclass:  Option[Defn.Class]    = None,
-  traitT:      Option[Defn.Trait]    = None,
-  typeT:       Option[Defn.Type]     = None,
-  implicitDef: Seq[Option[Defn.Def]] = Seq.empty
+    newArgs:     Term.Param,
+    valueclass:  Option[Defn.Class]    = None,
+    traitT:      Option[Defn.Trait]    = None,
+    typeT:       Option[Defn.Type]     = None,
+    implicitDef: Seq[Option[Defn.Def]] = Seq.empty
 )
